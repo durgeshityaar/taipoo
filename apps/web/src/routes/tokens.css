@@ -1,0 +1,51 @@
+/*
+ * Layer 1: raw palette. Values and usage rules are documented in DESIGN.md (keep the two in sync).
+ * Nothing uses these directly: layout.css maps them onto shadcn's semantic roles (--primary, --border…),
+ * and components only ever reference those roles. Rebrand here; don't reach for these in markup.
+ */
+:root {
+	/* Brand blue: the one structural accent (actions, links, focus) */
+	--blue: #0075de;
+	--blue-hover: #0068c7; /* between blue and blue-pressed */
+	--blue-pressed: #005bab;
+
+	/* Surfaces */
+	--paper: #f6f5f4; /* warm page + sidebar canvas */
+	--white: #ffffff; /* cards, fields, popovers */
+
+	/* Ink (text) */
+	--ink: rgb(0 0 0 / 0.95); /* soft true-black */
+	--ink-secondary: #31302e; /* 13.2:1 on white */
+	--ink-muted: #615d59; /* 6.5:1: helper text, metadata, descriptions */
+	--ink-faint: #a39e98; /* 2.7:1: placeholders & disabled ONLY, never real text */
+
+	/* Lines */
+	--hairline: #e6e6e6; /* card borders, dividers */
+	--hairline-strong: #dddddd; /* input and outline-button borders */
+
+	/* Status: both pass AA on white and on --paper */
+	--red: #c4302b; /* 5.5:1 white · 5.1:1 paper */
+	--green: #0f7b2c; /* 5.4:1 white · 5.0:1 paper */
+
+	/* Interaction */
+	--hover-overlay: rgb(55 53 47 / 0.08); /* neutral hover, layered via the bg-hover utility */
+	--focus-ring: rgb(0 117 222 / 0.35);
+
+	/* Sticker palette: decoration only (question-type icons, form covers, category dots).
+	   Never text, CTAs or structural fills; most fail contrast as text. */
+	--sticker-sky: #62aef0;
+	--sticker-purple: #d6b6f6;
+	--sticker-purple-deep: #391c57;
+	--sticker-pink: #ff64c8;
+	--sticker-orange: #dd5b00;
+	--sticker-orange-deep: #793400;
+	--sticker-teal: #2a9d99;
+	--sticker-green: #1aae39;
+	--sticker-brown: #523410;
+
+	/* Elevation: many near-transparent layers, never a hard cast */
+	--elevation-1: rgb(0 0 0 / 0.01) 0 0.175px 1.041px, rgb(0 0 0 / 0.02) 0 0.8px 2.925px,
+		rgb(0 0 0 / 0.027) 0 2.025px 7.847px, rgb(0 0 0 / 0.04) 0 4px 18px;
+	--elevation-2: rgb(0 0 0 / 0.01) 0 1px 3px, rgb(0 0 0 / 0.02) 0 3px 7px, rgb(0 0 0 / 0.02) 0 7px 15px,
+		rgb(0 0 0 / 0.04) 0 14px 28px, rgb(0 0 0 / 0.05) 0 23px 52px;
+}

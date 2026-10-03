@@ -1,0 +1,172 @@
+@import 'tailwindcss';
+@import "tw-animate-css";
+@import "shadcn-svelte/tailwind.css";
+@import "@fontsource-variable/inter";
+@import "./tokens.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Layer 2: semantic roles. shadcn components reference only these names, so they reskin from here.
+ * Light theme only for now; a dark theme is one `.dark { … }` block of overrides later.
+ */
+:root {
+	--background: var(--paper); /* warm page, never clinical white */
+	--foreground: var(--ink);
+	--card: var(--white);
+	--card-foreground: var(--ink);
+	--popover: var(--white);
+	--popover-foreground: var(--ink);
+	--primary: var(--blue);
+	--primary-foreground: var(--white);
+	--primary-hover: var(--blue-hover);
+	--primary-active: var(--blue-pressed);
+	--secondary: rgb(55 53 47 / 0.06); /* soft filled button: tint that works on white and on paper */
+	--secondary-foreground: var(--ink);
+	--muted: var(--paper);
+	--muted-foreground: var(--ink-muted);
+	--faint: var(--ink-faint); /* placeholders & disabled only */
+	--accent: var(--hover-overlay); /* shadcn's hover/highlight fill (ghost buttons, menus, rows) */
+	--accent-foreground: var(--ink);
+	--destructive: var(--red);
+	--success: var(--green);
+	--link: var(--blue);
+	--border: var(--hairline);
+	--input: var(--hairline-strong);
+	--ring: var(--blue);
+	--chart-1: var(--blue);
+	--chart-2: var(--sticker-teal);
+	--chart-3: var(--sticker-orange);
+	--chart-4: var(--sticker-purple-deep);
+	--chart-5: var(--sticker-pink);
+	--radius: 12px;
+	--sidebar: var(--paper);
+	--sidebar-foreground: var(--ink);
+	--sidebar-primary: var(--blue);
+	--sidebar-primary-foreground: var(--white);
+	--sidebar-accent: var(--hover-overlay);
+	--sidebar-accent-foreground: var(--ink);
+	--sidebar-border: var(--hairline);
+	--sidebar-ring: var(--blue);
+}
+
+/* Layer 3: Tailwind utilities (bg-primary, text-title, rounded-md, shadow-soft …) */
+@theme inline {
+	--font-sans: 'Inter Variable', -apple-system, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif;
+	--font-mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+	--color-sidebar-ring: var(--sidebar-ring);
+	--color-sidebar-border: var(--sidebar-border);
+	--color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+	--color-sidebar-accent: var(--sidebar-accent);
+	--color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+	--color-sidebar-primary: var(--sidebar-primary);
+	--color-sidebar-foreground: var(--sidebar-foreground);
+	--color-sidebar: var(--sidebar);
+	--color-chart-5: var(--chart-5);
+	--color-chart-4: var(--chart-4);
+	--color-chart-3: var(--chart-3);
+	--color-chart-2: var(--chart-2);
+	--color-chart-1: var(--chart-1);
+	--color-ring: var(--ring);
+	--color-input: var(--input);
+	--color-border: var(--border);
+	--color-link: var(--link);
+	--color-success: var(--success);
+	--color-destructive: var(--destructive);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-accent: var(--accent);
+	--color-faint: var(--faint);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-muted: var(--muted);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-secondary: var(--secondary);
+	--color-primary-active: var(--primary-active);
+	--color-primary-hover: var(--primary-hover);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-primary: var(--primary);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-popover: var(--popover);
+	--color-card-foreground: var(--card-foreground);
+	--color-card: var(--card);
+	--color-foreground: var(--foreground);
+	--color-background: var(--background);
+
+	/* Sticker palette as utilities (bg-sticker-teal …): decoration only */
+	--color-sticker-sky: var(--sticker-sky);
+	--color-sticker-purple: var(--sticker-purple);
+	--color-sticker-pink: var(--sticker-pink);
+	--color-sticker-orange: var(--sticker-orange);
+	--color-sticker-teal: var(--sticker-teal);
+	--color-sticker-green: var(--sticker-green);
+	--color-sticker-brown: var(--sticker-brown);
+
+	/* Radius: exact values from DESIGN.md → Shapes (shadcn's default derives these from one --radius). */
+	--radius-xs: 4px; /* inputs, small tags */
+	--radius-sm: 5px; /* menu items, list rows */
+	--radius-md: 8px; /* buttons */
+	--radius-lg: 12px; /* cards */
+	--radius-xl: 16px; /* large containers, modals */
+	--radius-2xl: 20px;
+	--radius-3xl: 24px;
+	--radius-4xl: 32px;
+
+	/* Elevation */
+	--shadow-soft: var(--elevation-1); /* hovered/clickable cards, floating buttons */
+	--shadow-elevated: var(--elevation-2); /* modals, popovers */
+
+	/* Type roles (text-heading-2 …): size + line-height + tracking + weight in one class (DESIGN.md → Typography).
+	   Mapping: page title = heading-2, section = title, card title = title-sm, metadata = caption, sidebar rows = nav,
+	   badges = eyebrow; public form questions use heading-1/heading-2. */
+	--text-heading-1: 40px;
+	--text-heading-1--line-height: 1.1;
+	--text-heading-1--letter-spacing: -1px;
+	--text-heading-1--font-weight: 700;
+	--text-heading-2: 26px;
+	--text-heading-2--line-height: 1.23;
+	--text-heading-2--letter-spacing: -0.625px;
+	--text-heading-2--font-weight: 700;
+	--text-heading-3: 22px;
+	--text-heading-3--line-height: 1.27;
+	--text-heading-3--letter-spacing: -0.25px;
+	--text-heading-3--font-weight: 700;
+	--text-title: 20px;
+	--text-title--line-height: 1.4;
+	--text-title--letter-spacing: -0.125px;
+	--text-title--font-weight: 600;
+	--text-title-sm: 16px; /* card titles */
+	--text-title-sm--line-height: 1.5;
+	--text-title-sm--letter-spacing: -0.01em;
+	--text-title-sm--font-weight: 600;
+	--text-body-md: 16px;
+	--text-body-md--line-height: 1.5;
+	--text-body-sm: 15px;
+	--text-body-sm--line-height: 1.33;
+	--text-caption: 14px;
+	--text-caption--line-height: 1.43;
+	--text-nav: 13px; /* sidebar nav rows */
+	--text-nav--line-height: 1.38;
+	--text-eyebrow: 12px;
+	--text-eyebrow--line-height: 1.33;
+	--text-eyebrow--letter-spacing: 0.125px;
+	--text-eyebrow--font-weight: 600;
+}
+
+/* Hover tint layered ON TOP of the element's own background (white, paper or transparent), so one
+   token works everywhere. A plain bg-[overlay] would replace a white fill with see-through paper. */
+@utility bg-hover {
+	background-image: linear-gradient(var(--hover-overlay), var(--hover-overlay));
+}
+
+@layer base {
+	* {
+		@apply border-border outline-ring/50;
+	}
+	body {
+		@apply bg-background text-foreground;
+	}
+	html {
+		@apply font-sans;
+		font-feature-settings: 'lnum', 'locl'; /* lining numerals */
+	}
+}

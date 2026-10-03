@@ -1,0 +1,23 @@
+<!-- design: 12px radius, hairline ring, flat by default; add `data-interactive` to clickable cards for the level-1 hover shadow. Reapply after --overwrite. -->
+<script lang="ts">
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
+
+	let {
+		ref = $bindable(null),
+		class: className,
+		children,
+		size = "default",
+		...restProps
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & { size?: "default" | "sm" } = $props();
+</script>
+
+<div
+	bind:this={ref}
+	data-slot="card"
+	data-size={size}
+	class={cn("ring-border bg-card text-card-foreground gap-(--card-spacing) overflow-hidden rounded-lg py-(--card-spacing) text-sm ring-1 data-interactive:hover:shadow-soft data-interactive:transition-shadow data-interactive:duration-200 [--card-spacing:--spacing(6)] has-[>img:first-child]:pt-0 data-[size=sm]:[--card-spacing:--spacing(4)] *:[img:first-child]:rounded-t-lg *:[img:last-child]:rounded-b-lg group/card flex flex-col", className)}
+	{...restProps}
+>
+	{@render children?.()}
+</div>

@@ -1,0 +1,22 @@
+name: taipoo
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: taipoo
+      POSTGRES_PASSWORD: taipoo
+      POSTGRES_DB: taipoo
+    ports:
+      - "5433:5432" # host 5432 is taken by a local Postgres 16 install
+    volumes:
+      - pgdata:/var/lib/postgresql # pg18+ mounts the parent dir, not /data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taipoo -d taipoo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

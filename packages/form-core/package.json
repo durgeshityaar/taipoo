@@ -1,0 +1,11 @@
+{
+  "name": "@taipoo/form-core",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "zod": "catalog:"
+  }
+}
