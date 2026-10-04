@@ -39,6 +39,12 @@ export async function updateOwnedDraft(id: string, ownerId: string, draft: FormD
   return form;
 }
 
+// Versions and responses go with it (foreign keys cascade).
+export async function deleteOwnedForm(id: string, ownerId: string) {
+  const [form] = await db.delete(forms).where(owned(id, ownerId)).returning({ id: forms.id });
+  return form;
+}
+
 // Snapshot the current draft as the next version and make it the live one, atomically.
 // The row lock serializes concurrent publishes of the same form, so version numbers never collide.
 export function publishOwnedDraft(id: string, ownerId: string) {

@@ -11,23 +11,30 @@
 	import { Button } from '$lib/components/ui/button';
 	import FormView from '$lib/components/form-view/form-view.svelte';
 	import ArrowLeftIcon from '@lucide/svelte/icons/arrow-left';
-	import { FormEditor } from '$lib/form-editor/form-editor.svelte';
+	import { FormEditor, openEditor } from '$lib/form-editor/form-editor.svelte';
 	import { pageHeader } from '$lib/page-header.svelte';
+	import { keepLast } from '$lib/utils';
 	import { formTitle, workspace } from '$lib/workspace';
 
 	let { data } = $props();
 
 	// One editor per form: opening another form starts a new one; reloading the same form keeps your edits.
-	const formId = $derived(data.form.id);
+	const lastForm = keepLast<typeof data.form>();
+	const form = $derived(lastForm(data.form));
+	const formId = $derived(form.id);
 	const editor = $derived.by(() => {
 		formId; // the only dependency
-		return untrack(() => new FormEditor(data.form));
+		return untrack(() => new FormEditor(form));
 	});
 
 	// Leaving the editor, or switching forms, mid-debounce still saves.
 	$effect(() => {
 		const current = editor;
-		return () => void current.flush();
+		openEditor.current = current;
+		return () => {
+			if (openEditor.current === current) openEditor.current = null;
+			void current.flush();
+		};
 	});
 
 	$effect(() => {
@@ -86,6 +93,10 @@
 			class="ms-2 text-caption font-semibold text-muted-foreground hover:text-foreground">Open form ↗</a
 		>
 	{/if}
+	<a
+		href="/forms/{editor.id}/results"
+		class="ms-2 text-caption font-semibold text-muted-foreground hover:text-foreground">Results</a
+	>
 	<button
 		type="button"
 		onclick={() => (previewing = true)}
@@ -111,6 +122,7 @@
 <!-- Each block's gutter (🗑 + ⠿) hangs in the left margin; when the area is too narrow for that margin, the column makes room for it. -->
 <div class="@container w-full">
 <div class="mx-auto w-full max-w-2xl pt-16 pr-4 pl-20 md:pt-24 @4xl:pl-4">
+	<!-- leading-tight: an <input> clips to its line box, and heading-1's 1.1 line-height cut off descenders (g, y, p). -->
 	<input
 		value={editor.draft.title}
 		oninput={(e) => editor.setTitle(e.currentTarget.value)}
@@ -125,7 +137,7 @@
 		placeholder="Form title"
 		aria-label="Form title"
 		aria-invalid={editor.issues.title ? true : undefined}
-		class="w-full bg-transparent text-heading-1 outline-none placeholder:text-faint"
+		class="w-full bg-transparent text-heading-1 leading-tight outline-none placeholder:text-faint"
 	/>
 	{#if editor.issues.title}<p class="mt-1 text-caption text-destructive">{editor.issues.title}</p>{/if}
 

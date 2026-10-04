@@ -95,6 +95,19 @@ describe("/api/forms", () => {
     expect(await (await bob.$get()).json()).toEqual([]);
   });
 
+  test("delete removes the form, its live page and its responses; strangers get 404", async () => {
+    const alice = await signedInClient();
+    const bob = await signedInClient();
+    const form = await (await alice.forms.$post({ json: { draft } })).json();
+    await alice.forms[":id"].publish.$post({ param: { id: form.id } });
+
+    expect((await bob.forms[":id"].$delete({ param: { id: form.id } })).status as number).toBe(404);
+    expect((await alice.forms[":id"].$delete({ param: { id: form.id } })).status as number).toBe(204);
+    expect((await alice.forms[":id"].$get({ param: { id: form.id } })).status as number).toBe(404);
+    expect((await client().f[":slug"].$get({ param: { slug: form.slug } })).status as number).toBe(404);
+    expect(await (await alice.forms.$get()).json()).toEqual([]);
+  });
+
   test("body over 1 MB → 413", async () => {
     const forms = (await signedInClient()).forms;
     const res = await forms.$post({ json: { draft: { ...draft, description: "x".repeat(1024 * 1024) } } });

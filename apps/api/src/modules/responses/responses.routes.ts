@@ -51,4 +51,14 @@ export const formResponsesRoutes = new Hono<AuthEnv>()
     const { id } = c.req.valid("param");
     const page = await service.listResponses(c.get("user").id, id, c.req.valid("query"));
     return c.json(page);
+  })
+
+  // GET /api/forms/:id/responses.csv: every response as a CSV download
+  .get("/:id/responses.csv", requireAuth, idParam("Form"), async (c) => {
+    const { id } = c.req.valid("param");
+    const { csv, filename } = await service.exportResponsesCsv(c.get("user").id, id);
+    return c.body(csv, 200, {
+      "Content-Type": "text/csv; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+    });
   });

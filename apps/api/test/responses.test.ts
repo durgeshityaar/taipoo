@@ -106,6 +106,8 @@ describe("owner: GET /api/forms/:id/responses", () => {
     const p2 = await list({ limit: "2", cursor: p1.nextCursor! });
     expect(p2.items.map((r) => r.answers.q1)).toEqual(["first"]);
     expect(p2.nextCursor).toBeNull();
+    expect([p1.total, p2.total]).toEqual([3, 3]);
+    expect(p1.versions).toEqual([{ id: form.versionId, definition: expect.objectContaining({ title: "Feedback" }) }]);
   });
 
   test("another user's form → 404; no session → 401", async () => {
@@ -113,5 +115,45 @@ describe("owner: GET /api/forms/:id/responses", () => {
     const stranger = await signedInClient();
     expect((await stranger.forms[":id"].responses.$get({ param: { id: form.id }, query: {} })).status as number).toBe(404);
     expect((await client().forms[":id"].responses.$get({ param: { id: form.id }, query: {} })).status as number).toBe(401);
+  });
+});
+
+describe("owner: GET /api/forms/:id/responses.csv", () => {
+  const draft = {
+    title: "Team lunch!",
+    questions: [
+      { id: "name", type: "short_text" as const, title: "Name" },
+      { id: "gone", type: "email" as const, title: "Email" },
+      { id: "food", type: "multiple_choice" as const, title: "Food", options: [{ id: "p", label: "Pizza" }, { id: "s", label: "Sushi" }] },
+    ],
+  };
+
+  test("one column per question across versions, labels as answered, escaped cells", async () => {
+    const owner = await signedInClient();
+    const v1 = await publishForm(owner, draft);
+    await submit(v1.slug, { versionId: v1.versionId, answers: { name: 'Ada, "the" first', gone: "ada@example.com", food: "p" } });
+
+    // v2: Pizza renamed, Email deleted
+    await owner.forms[":id"].draft.$put({
+      param: { id: v1.id },
+      json: { ...draft, questions: [draft.questions[0]!, { ...draft.questions[2]!, options: [{ id: "p", label: "Pizza slice" }, { id: "s", label: "Sushi" }] }] },
+    });
+    const v2 = await (await owner.forms[":id"].publish.$post({ param: { id: v1.id } })).json();
+    await submit(v1.slug, { versionId: v2.id, answers: { name: "=HYPERLINK(1)", food: "p" } });
+
+    const res = await owner.forms[":id"]["responses.csv"].$get({ param: { id: v1.id } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Content-Type")).toBe("text/csv; charset=utf-8");
+    expect(res.headers.get("Content-Disposition")).toBe('attachment; filename="team-lunch-responses.csv"');
+    const lines = (await res.text()).replace(/^\uFEFF/, "").trimEnd().split("\r\n");
+    expect(lines[0]).toBe("Submitted at,Name,Food,Email");
+    expect(lines[1]).toMatch(/^\d{4}-\d\d-\d\dT[^,]+,'=HYPERLINK\(1\),Pizza slice,$/); // newest first; formula neutralized
+    expect(lines[2]).toMatch(/,"Ada, ""the"" first",Pizza,ada@example.com$/); // old label kept
+  });
+
+  test("another user's form → 404", async () => {
+    const form = await publishForm(await signedInClient(), draft);
+    const stranger = await signedInClient();
+    expect((await stranger.forms[":id"]["responses.csv"].$get({ param: { id: form.id } })).status as number).toBe(404);
   });
 });

@@ -20,6 +20,10 @@ export async function updateDraft(userId: string, formId: string, draft: FormDra
   return form;
 }
 
+export async function deleteForm(userId: string, formId: string) {
+  if (!(await data.deleteOwnedForm(formId, userId))) throw notFound("Form");
+}
+
 export async function publishForm(userId: string, formId: string) {
   const form = await getForm(userId, formId);
   // Drafts are only checked for structure; publishing also needs a title, questions, titled questions…

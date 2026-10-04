@@ -101,7 +101,8 @@ components:
     backgroundColor: "{colors.canvas}"
     border: "1px {colors.hairline}"
     rowHover: "none on nav rows (only the active row changes); {colors.hover-overlay} on the header switcher and footer user menu"
-    rowAction: "hidden until its own row is hovered or focused (e.g. + on a workspace)"
+    rowAction: "hidden until its own row is hovered or focused (e.g. + on a workspace, ⋯ on a form)"
+    formMenu: "a form row's ⋯ opens a menu-panel to the right: Edit, Rename (inline input in the row), Copy link to share (disabled until live), Duplicate, then a separator and Delete (destructive, confirmed with AlertDialog); toasts are messages only"
     rowText: "{colors.ink-muted}"
     rowActive: "{colors.ink}, medium weight, no fill"
     rowRounded: "{rounded.md}"
@@ -148,6 +149,12 @@ components:
     submit: "button-pill with an arrow; thank-you screen: message in {typography.heading-2}, centred"
     badge: "\"Made with Taipoo\" + logo, fixed bottom-right: surface, {colors.hairline} border, {rounded.md}, {typography.caption} semibold {colors.primary}"
     preview: "the editor's Preview renders the same view full screen over the editor, with an outline \"Back to editor\" button (Esc also closes); submitting validates but saves nothing"
+  results-table:
+    description: "/forms/<id>/results: a Notion-style database of responses; title, count and table share one left edge"
+    header: "{colors.canvas} band, each column = question-type icon + title in {typography.caption} {colors.ink-muted}; first column \"Submitted\" with a calendar icon"
+    cells: "{typography.body-sm}, one line, truncated, 192–320px wide, {colors.hairline} borders, {colors.hover-overlay} row hover; the table scrolls sideways inside the page"
+    sidePeek: "clicking a row opens a right Sheet with the whole response: type icon + title in {typography.caption} {colors.ink-muted}, answer in {typography.body-md} with line breaks kept, — when unanswered"
+    actions: "header: Copy link, Download CSV (quiet), Edit (primary); Load more as an outline button under the table"
   empty-state:
     backgroundColor: "{colors.canvas}"
     rounded: "{rounded.xl}"

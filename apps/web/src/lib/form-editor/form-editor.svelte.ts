@@ -13,6 +13,10 @@ const canonical = (d: FormDraft) => {
 	return parsed.success ? JSON.stringify(parsed.data) : null;
 };
 
+// The editor that's on screen, if any. Sidebar actions on that form go through it: it holds unsaved edits,
+// and its autosave would otherwise overwrite a rename or write to a deleted form.
+export const openEditor = $state<{ current: FormEditor | null }>({ current: null });
+
 // The editor's state for one form: the draft being edited, autosave and publish.
 // Every edit goes through a method here, so every edit schedules a save.
 export class FormEditor {
@@ -121,6 +125,12 @@ export class FormEditor {
 		this.#pending = () => this.#save(this.id, $state.snapshot(this.draft));
 		clearTimeout(this.#timer);
 		this.#timer = setTimeout(() => this.flush(), 600);
+	}
+
+	// Drops a pending save (the form is being deleted).
+	discard() {
+		clearTimeout(this.#timer);
+		this.#pending = undefined;
 	}
 
 	async flush() {

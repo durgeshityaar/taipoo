@@ -4,7 +4,7 @@
     import { goto, invalidate } from "$app/navigation";
     import { api } from "$lib/api";
     import * as Sidebar from "$lib/components/ui/sidebar";
-    import { formTitle, workspace } from "$lib/workspace";
+    import { workspace } from "$lib/workspace";
     import UserMenu from "./user-menu.svelte";
     import WorkspaceSwitcher from "./workspace-switcher.svelte";
     import WorkspacesNav from "./workspaces-nav.svelte";
@@ -16,14 +16,14 @@
         ...restProps
     }: ComponentProps<typeof Sidebar.Root> & {
         user: { name: string; email: string; image?: string | null };
-        forms: { id: string; title: string }[];
+        forms: { id: string; title: string; slug: string; publishedVersionId: string | null }[];
     } = $props();
 
     const workspaces = $derived([
         {
             name: workspace.name,
             open: true,
-            pages: forms.map((form) => ({ name: formTitle(form.title), url: `/forms/${form.id}/edit` })),
+            forms,
         },
     ]);
 

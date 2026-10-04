@@ -17,3 +17,11 @@ export type WithoutChild<T> = T extends { child?: any } ? Omit<T, "child"> : T;
 export type WithoutChildren<T> = T extends { children?: any } ? Omit<T, "children"> : T;
 export type WithoutChildrenOrChild<T> = WithoutChildren<WithoutChild<T>>;
 export type WithElementRef<T, U extends HTMLElement = HTMLElement> = T & { ref?: U | null };
+
+// SvelteKit hands a page the next route's `data` just before unmounting it, so for that moment anything the next
+// route doesn't load is undefined, and deriveds that read it throw and abort the navigation. Wrap such values:
+// `const form = $derived(lastForm(data.form))` keeps the last real value through that moment.
+export function keepLast<T>() {
+	let last: T;
+	return (value: T | undefined): T => (value === undefined ? last : (last = value));
+}
