@@ -149,6 +149,10 @@ components:
     submit: "button-pill with an arrow; thank-you screen: message in {typography.heading-2}, centred"
     badge: "\"Made with Taipoo\" + logo, fixed bottom-right: surface, {colors.hairline} border, {rounded.md}, {typography.caption} semibold {colors.primary}"
     preview: "the editor's Preview renders the same view full screen over the editor, with an outline \"Back to editor\" button (Esc also closes); submitting validates but saves nothing"
+  home:
+    description: "/dashboard: Notion-style home. Greeting in {typography.heading-2}, then \"Your forms · n\" ({typography.eyebrow}, {colors.ink-muted}) over a surface list card ({rounded.lg}, {colors.hairline} border)"
+    rows: "file icon + name (medium) · status (Live = {colors.success} dot + text, Draft = {colors.ink-muted}) · responses (links to Results) · edited (relative time, exact time on hover) · ⋯ on hover"
+    empty: "empty-state card: logo, \"No forms yet\", one line of copy, pill New form; the header always has a primary + New form"
   results-table:
     description: "/forms/<id>/results: a Notion-style database of responses; title, count and table share one left edge"
     header: "{colors.canvas} band, each column = question-type icon + title in {typography.caption} {colors.ink-muted}; first column \"Submitted\" with a calendar icon"

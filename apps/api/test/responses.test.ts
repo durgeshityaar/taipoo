@@ -1,11 +1,13 @@
 import { describe, expect, test } from "bun:test";
+import type { formDraft } from "@taipoo/form-core";
+import type { z } from "zod";
 import { client, sampleDraft, signedInClient } from "./helpers";
 
 type Api = Awaited<ReturnType<typeof signedInClient>>;
 const visitor = client().f; // public routes, no session
 
 // Creates and publishes a form as `owner`; returns what a visitor needs to submit to it.
-async function publishForm(owner: Api, draft = sampleDraft) {
+async function publishForm(owner: Api, draft: z.input<typeof formDraft> = sampleDraft) {
   const form = await (await owner.forms.$post({ json: { draft } })).json();
   const version = await (await owner.forms[":id"].publish.$post({ param: { id: form.id } })).json();
   return { id: form.id, slug: form.slug, versionId: version.id };
@@ -107,6 +109,7 @@ describe("owner: GET /api/forms/:id/responses", () => {
     expect(p2.items.map((r) => r.answers.q1)).toEqual(["first"]);
     expect(p2.nextCursor).toBeNull();
     expect([p1.total, p2.total]).toEqual([3, 3]);
+    expect(await (await owner.forms.$get()).json()).toEqual([expect.objectContaining({ id: form.id, responseCount: 3 })]);
     expect(p1.versions).toEqual([{ id: form.versionId, definition: expect.objectContaining({ title: "Feedback" }) }]);
   });
 
@@ -119,14 +122,9 @@ describe("owner: GET /api/forms/:id/responses", () => {
 });
 
 describe("owner: GET /api/forms/:id/responses.csv", () => {
-  const draft = {
-    title: "Team lunch!",
-    questions: [
-      { id: "name", type: "short_text" as const, title: "Name" },
-      { id: "gone", type: "email" as const, title: "Email" },
-      { id: "food", type: "multiple_choice" as const, title: "Food", options: [{ id: "p", label: "Pizza" }, { id: "s", label: "Sushi" }] },
-    ],
-  };
+  const name = { id: "name", type: "short_text" as const, title: "Name" };
+  const food = { id: "food", type: "multiple_choice" as const, title: "Food", options: [{ id: "p", label: "Pizza" }, { id: "s", label: "Sushi" }] };
+  const draft = { title: "Team lunch!", questions: [name, { id: "gone", type: "email" as const, title: "Email" }, food] };
 
   test("one column per question across versions, labels as answered, escaped cells", async () => {
     const owner = await signedInClient();
@@ -136,7 +134,7 @@ describe("owner: GET /api/forms/:id/responses.csv", () => {
     // v2: Pizza renamed, Email deleted
     await owner.forms[":id"].draft.$put({
       param: { id: v1.id },
-      json: { ...draft, questions: [draft.questions[0]!, { ...draft.questions[2]!, options: [{ id: "p", label: "Pizza slice" }, { id: "s", label: "Sushi" }] }] },
+      json: { ...draft, questions: [name, { ...food, options: [{ id: "p", label: "Pizza slice" }, { id: "s", label: "Sushi" }] }] },
     });
     const v2 = await (await owner.forms[":id"].publish.$post({ param: { id: v1.id } })).json();
     await submit(v1.slug, { versionId: v2.id, answers: { name: "=HYPERLINK(1)", food: "p" } });

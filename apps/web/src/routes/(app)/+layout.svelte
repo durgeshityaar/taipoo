@@ -6,14 +6,15 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { pageHeader } from '$lib/page-header.svelte';
+	import { workspace } from '$lib/workspace';
 
 	let { data, children } = $props();
 
-	// Pages with their own trail (the editor) set pageHeader.crumbs; others get "Taipoo › <title>".
+	// Pages with their own trail (the editor) set pageHeader.crumbs; others get "<workspace> › <title>".
 	// New top-level page → one entry here.
-	const titles: Record<string, string> = { '/dashboard': 'Dashboard' };
+	const titles: Record<string, string> = { '/dashboard': 'Home' };
 	const crumbs = $derived(
-		pageHeader.crumbs ?? ['Taipoo', titles[page.url.pathname]].filter((crumb) => crumb !== undefined)
+		pageHeader.crumbs ?? [workspace.name, titles[page.url.pathname]].filter((crumb) => crumb !== undefined)
 	);
 </script>
 

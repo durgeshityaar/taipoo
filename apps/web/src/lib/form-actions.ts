@@ -8,6 +8,15 @@ import { openEditor } from '$lib/form-editor/form-editor.svelte';
 // handled through the editor (see openEditor), so unsaved edits are kept and its autosave stays correct.
 // Toasts are messages only.
 
+// A new blank, untitled form, then straight into its editor.
+export async function createForm() {
+	const res = await api().forms.$post({ json: {} });
+	if (!res.ok) return void toast.error("Couldn't create the form. Try again.");
+	const form = await res.json();
+	await invalidate('app:forms');
+	await goto(`/forms/${form.id}/edit`);
+}
+
 export const publicUrl = (slug: string) => `${location.origin}/f/${slug}`;
 
 export async function copyLink(slug: string) {

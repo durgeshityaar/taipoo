@@ -19,7 +19,7 @@ describe("/api/forms", () => {
     expect(form.slug).toMatch(/^[0-9a-f]{12}$/);
 
     const list = await (await forms.$get()).json();
-    expect(list).toEqual([expect.objectContaining({ id: form.id, title: "" })]);
+    expect(list).toEqual([expect.objectContaining({ id: form.id, title: "", responseCount: 0 })]);
 
     const updated = await forms[":id"].draft.$put({ param: { id: form.id }, json: draft });
     expect(updated.status).toBe(200);

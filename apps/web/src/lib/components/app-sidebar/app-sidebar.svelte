@@ -1,8 +1,8 @@
 <script lang="ts">
+    import logo from "$lib/assets/taipoo_logo.svg";
     import type { ComponentProps } from "svelte";
-    import { toast } from "svelte-sonner";
-    import { goto, invalidate } from "$app/navigation";
-    import { api } from "$lib/api";
+    import { page } from "$app/state";
+    import { createForm } from "$lib/form-actions";
     import * as Sidebar from "$lib/components/ui/sidebar";
     import { workspace } from "$lib/workspace";
     import UserMenu from "./user-menu.svelte";
@@ -27,17 +27,6 @@
         },
     ]);
 
-    // New blank, untitled form, then straight into its builder.
-    async function createForm() {
-        const res = await api().forms.$post({ json: {} });
-        if (!res.ok) {
-            toast.error("Couldn't create the form. Try again.");
-            return;
-        }
-        const form = await res.json();
-        await invalidate("app:forms");
-        await goto(`/forms/${form.id}/edit`);
-    }
 </script>
 
 <Sidebar.Root bind:ref class="border-e-0" {...restProps}>
@@ -45,6 +34,17 @@
         <WorkspaceSwitcher workspaces={[workspace]} />
     </Sidebar.Header>
     <Sidebar.Content>
+        <Sidebar.Group class="pb-0">
+            <Sidebar.Menu>
+                <Sidebar.MenuItem>
+                    <Sidebar.MenuButton isActive={page.url.pathname === "/dashboard"}>
+                        {#snippet child({ props })}
+                            <a href="/dashboard" {...props}><img src={logo} alt="" class="size-4" /><span>Home</span></a>
+                        {/snippet}
+                    </Sidebar.MenuButton>
+                </Sidebar.MenuItem>
+            </Sidebar.Menu>
+        </Sidebar.Group>
         <WorkspacesNav {workspaces} oncreate={createForm} />
     </Sidebar.Content>
     <Sidebar.Footer>

@@ -1,7 +1,7 @@
 import type { FormDraft } from "@taipoo/form-core";
-import { and, desc, eq, max, sql } from "drizzle-orm";
+import { and, count, desc, eq, max, sql } from "drizzle-orm";
 import { db } from "../../db/client";
-import { formVersions, forms } from "../../db/schema";
+import { formVersions, forms, responses } from "../../db/schema";
 
 // Every query is scoped to the owner, so another user's form behaves exactly like a missing one.
 const owned = (id: string, ownerId: string) => and(eq(forms.id, id), eq(forms.ownerId, ownerId));
@@ -19,9 +19,12 @@ export const listFormsByOwner = (ownerId: string) =>
       title: sql<string>`${forms.draft}->>'title'`, // list view doesn't need the whole definition
       publishedVersionId: forms.publishedVersionId,
       updatedAt: forms.updatedAt,
+      responseCount: count(responses.id),
     })
     .from(forms)
+    .leftJoin(responses, eq(responses.formId, forms.id)) // indexed on (form_id, id)
     .where(eq(forms.ownerId, ownerId))
+    .groupBy(forms.id)
     .orderBy(desc(forms.updatedAt));
 
 // Includes the live version's definition (null until published), so the editor can tell unpublished changes apart.
