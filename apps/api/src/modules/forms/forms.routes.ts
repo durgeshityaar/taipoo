@@ -1,4 +1,4 @@
-import { formDefinition } from "@taipoo/form-core";
+import { formDraft } from "@taipoo/form-core";
 import { Hono } from "hono";
 import { z } from "zod";
 import { requireAuth, type AuthEnv } from "../../auth";
@@ -9,7 +9,7 @@ import * as service from "./forms.service";
 // Routes stay chained (not `app.get(...)` statements) so Hono can infer the RPC client types.
 
 const formId = idParam("Form");
-const createFormBody = z.object({ draft: formDefinition.optional() });
+const createFormBody = z.object({ draft: formDraft.optional() });
 
 export const formsRoutes = new Hono<AuthEnv>()
   .use(requireAuth)
@@ -35,7 +35,7 @@ export const formsRoutes = new Hono<AuthEnv>()
   })
 
   // PUT /api/forms/:id/draft: replace the draft (the live version is unaffected until publish)
-  .put("/:id/draft", formId, validate("json", formDefinition), async (c) => {
+  .put("/:id/draft", formId, validate("json", formDraft), async (c) => {
     const { id } = c.req.valid("param");
     const form = await service.updateDraft(c.get("user").id, id, c.req.valid("json"));
     return c.json(form);

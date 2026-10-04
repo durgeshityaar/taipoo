@@ -1,4 +1,4 @@
-import type { FormDefinition } from "@taipoo/form-core";
+import type { FormDefinition, FormDraft } from "@taipoo/form-core";
 import { sql } from "drizzle-orm";
 import { index, integer, pgTable, text, unique, uuid, type AnyPgColumn } from "drizzle-orm/pg-core";
 import { jsonb, timestamptz, uuidv7 } from "../columns";
@@ -17,7 +17,7 @@ export const forms = pgTable(
       .notNull()
       .unique()
       .default(sql`left(replace(gen_random_uuid()::text, '-', ''), 12)`),
-    draft: jsonb().$type<FormDefinition>().notNull(),
+    draft: jsonb().$type<FormDraft>().notNull(),
     publishedVersionId: uuid().references((): AnyPgColumn => formVersions.id, { onDelete: "set null" }), // null = not published
     createdAt: timestamptz().notNull().defaultNow(),
     updatedAt: timestamptz()

@@ -129,6 +129,16 @@ components:
     cellPadding: 12px 16px
     rowBorder: "{colors.hairline}"
     rowHover: "{colors.hover-overlay}"
+  editor-block:
+    description: "a question in the form editor: borderless, on the canvas, like a line in a document"
+    gutter: "trash · + · ⠿ as 24px ghost icon buttons (16px icons) hanging in the left margin, centred on the title line, {colors.ink-muted}, shown on hover only (always on touch screens); narrow layouts pad the column so the gutter fits. + opens the question-type menu in place, ⠿ drags to reorder and opens the block menu"
+    titleTypography: "{typography.title}, sized to its text, placeholder \"Type a question\" in {colors.ink-faint}; the answer box starts on the same left edge"
+    requiredChip: "18px round {colors.hover-overlay} chip with an asterisk right after the title, only on required questions; clicking it makes the question optional"
+    blockMenu: "menu-panel popover: type icon + title header, switch rows (Required, type settings), then action rows with shortcut hints in {typography.caption} {colors.ink-muted}"
+    answerPreview: "an empty input (surface, {colors.hairline-strong} border, {rounded.md}, 36px, 14px side padding) with the type icon on the right in {colors.ink-muted}; multiple-choice options are the same box as a chip sized to its text, led by a 20px letter badge (A, B…; {colors.ink-muted} fill, white eyebrow text), then a fainter hairline \"Add option\" chip with the next letter"
+    issue: "{typography.caption}, {colors.destructive}, directly under the field"
+    submitPreview: "button-pill \"Submit →\" after the last block, inert"
+    gap: 32px between blocks
   empty-state:
     backgroundColor: "{colors.canvas}"
     rounded: "{rounded.xl}"
@@ -207,7 +217,7 @@ Buttons and form labels use 14px / 500. Inputs use 15px on desktop and **16px on
 - 32–64px: gaps between page sections.
 
 ### App shell
-A sidebar that collapses to icons (`collapsible="icon"`, ⌘B, or the rail) with a workspace switcher in the header, the nav menu, and a user menu in the footer. The top bar (64px, 48px when collapsed) holds the trigger and a breadcrumb; content fills the remaining width with 16px padding. Pages that read better narrow (forms, settings) constrain themselves with `max-w-*`.
+A sidebar that collapses to icons (`collapsible="icon"`, ⌘B, or the rail) with a workspace switcher in the header, the nav menu, and a user menu in the footer. The top bar (56px, 48px when collapsed; on the canvas, with a hairline bottom edge only below md where the sidebar becomes a sheet) holds the trigger and a breadcrumb, with page actions on the right as quiet caption text plus at most one compact primary button; content fills the remaining width with 16px padding. Pages that read better narrow (forms, settings) constrain themselves with `max-w-*`.
 
 ### Responsive
 | Breakpoint | Behaviour |

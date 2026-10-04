@@ -1,5 +1,9 @@
 import { describe, expect, test } from "bun:test";
-import { formDefinition } from "./form";
+import { formDefinition, formDraft } from "./form";
+import { blankQuestions, type QuestionType } from "./questions";
+
+const paths = (r: { success: boolean; error?: { issues: { path: PropertyKey[] }[] } }) =>
+  r.error?.issues.map((i) => i.path.join(".")) ?? [];
 
 describe("formDefinition", () => {
   test("fills defaults", () => {
@@ -16,18 +20,41 @@ describe("formDefinition", () => {
   });
 
   test("rejects duplicate question and option ids", () => {
-    const dup = formDefinition.safeParse({
+    const dup = formDraft.safeParse({
       title: "x",
       questions: [
         { id: "q", type: "email", title: "a" },
         { id: "q", type: "multiple_choice", title: "b", options: [{ id: "o", label: "1" }, { id: "o", label: "2" }] },
       ],
     });
-    expect(dup.success).toBe(false);
-    expect(dup.error!.issues.map((i) => i.path.join("."))).toEqual(["questions.1.id", "questions.1.options.1.id"]);
+    expect(paths(dup)).toEqual(["questions.1.id", "questions.1.options.1.id"]);
   });
 
   test("rejects unknown question type", () => {
-    expect(formDefinition.safeParse({ title: "x", questions: [{ id: "q", type: "rating", title: "a" }] }).success).toBe(false);
+    expect(formDraft.safeParse({ title: "x", questions: [{ id: "q", type: "rating", title: "a" }] }).success).toBe(false);
+  });
+
+  test("reports every publish issue with its path", () => {
+    const draft = {
+      title: " ",
+      questions: [
+        { id: "a", type: "email", title: "" },
+        { id: "b", type: "multiple_choice", title: "ok", options: [{ id: "o", label: "1" }, { id: "p", label: "" }] },
+        { id: "c", type: "multiple_choice", title: "ok", options: [] },
+      ],
+    };
+    expect(formDraft.safeParse(draft).success).toBe(true);
+    expect(paths(formDefinition.safeParse(draft))).toEqual([
+      "title",
+      "questions.0.title",
+      "questions.1.options.1.label",
+      "questions.2.options",
+    ]);
+    expect(paths(formDefinition.safeParse({ title: "x", questions: [] }))).toEqual(["questions"]);
+  });
+
+  test("every blank question is a valid draft", () => {
+    const questions = (Object.keys(blankQuestions) as QuestionType[]).map((t, i) => blankQuestions[t](`q${i}`));
+    expect(formDraft.safeParse({ title: "", questions }).success).toBe(true);
   });
 });
