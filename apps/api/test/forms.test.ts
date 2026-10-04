@@ -15,6 +15,7 @@ describe("/api/forms", () => {
     expect(created.status).toBe(201);
     const form = await created.json();
     expect(form).toMatchObject({ draft: { title: "", questions: [] }, publishedVersionId: null });
+    expect((await (await forms[":id"].$get({ param: { id: form.id } })).json()).publishedDefinition).toBeNull();
     expect(form.slug).toMatch(/^[0-9a-f]{12}$/);
 
     const list = await (await forms.$get()).json();
@@ -31,6 +32,7 @@ describe("/api/forms", () => {
 
     const got = await (await forms[":id"].$get({ param: { id: form.id } })).json();
     expect(got.publishedVersionId).toBe(v2.id);
+    expect(got.publishedDefinition?.title).toBe("Feedback");
   });
 
   test("publishing a form with no questions → 422", async () => {

@@ -24,9 +24,14 @@ export const listFormsByOwner = (ownerId: string) =>
     .where(eq(forms.ownerId, ownerId))
     .orderBy(desc(forms.updatedAt));
 
+// Includes the live version's definition (null until published), so the editor can tell unpublished changes apart.
 export async function findOwnedForm(id: string, ownerId: string) {
-  const [form] = await db.select().from(forms).where(owned(id, ownerId));
-  return form;
+  const [row] = await db
+    .select({ form: forms, publishedDefinition: formVersions.definition })
+    .from(forms)
+    .leftJoin(formVersions, eq(formVersions.id, forms.publishedVersionId))
+    .where(owned(id, ownerId));
+  return row && { ...row.form, publishedDefinition: row.publishedDefinition };
 }
 
 export async function updateOwnedDraft(id: string, ownerId: string, draft: FormDraft) {
