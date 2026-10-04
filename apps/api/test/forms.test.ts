@@ -38,7 +38,7 @@ describe("/api/forms", () => {
     const form = await (await forms.$post({ json: { draft: { ...draft, questions: [] } } })).json();
     const res = await forms[":id"].publish.$post({ param: { id: form.id } });
     expect(res.status as number).toBe(422); // thrown errors aren't in the RPC types, only returned responses
-    expect(await res.json()).toMatchObject({ error: { code: "empty_form" } });
+    expect(await res.json()).toMatchObject({ error: { code: "not_publishable", details: [{ path: "questions" }] } });
   });
 
   test("publishing an untitled form → 422", async () => {
@@ -46,7 +46,7 @@ describe("/api/forms", () => {
     const form = await (await forms.$post({ json: { draft: { ...draft, title: "" } } })).json();
     const res = await forms[":id"].publish.$post({ param: { id: form.id } });
     expect(res.status as number).toBe(422);
-    expect(await res.json()).toMatchObject({ error: { code: "untitled_form" } });
+    expect(await res.json()).toMatchObject({ error: { code: "not_publishable", details: [{ path: "title" }] } });
   });
 
   test("invalid draft → 400 with per-field details", async () => {
@@ -54,11 +54,26 @@ describe("/api/forms", () => {
     const form = await (await forms.$post({ json: {} })).json();
     const res = await forms[":id"].draft.$put({
       param: { id: form.id },
-      json: { ...draft, questions: [{ id: "q1", type: "email", title: "" }] },
+      json: { ...draft, questions: [{ id: "q1", type: "email", title: "x".repeat(501) }] },
     });
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({
       error: { code: "invalid_input", details: [{ path: "questions.0.title" }] },
+    });
+  });
+
+  test("empty question title saves as draft but blocks publish", async () => {
+    const forms = (await signedInClient()).forms;
+    const form = await (await forms.$post({ json: {} })).json();
+    const saved = await forms[":id"].draft.$put({
+      param: { id: form.id },
+      json: { ...draft, questions: [{ id: "q1", type: "email", title: "" }] },
+    });
+    expect(saved.status).toBe(200);
+    const res = await forms[":id"].publish.$post({ param: { id: form.id } });
+    expect(res.status as number).toBe(422);
+    expect(await res.json()).toMatchObject({
+      error: { code: "not_publishable", details: [{ path: "questions.0.title", message: "Required" }] },
     });
   });
 

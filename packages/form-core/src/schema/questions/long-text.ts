@@ -9,4 +9,6 @@ export const longTextQuestion = z.object({
 
 export type LongTextQuestion = z.infer<typeof longTextQuestion>;
 
+export const blankLongText = (id: string) => longTextQuestion.parse({ id, type: "long_text", title: "" });
+
 export const longTextAnswer = (q: LongTextQuestion) => z.string().trim().max(q.maxLength);

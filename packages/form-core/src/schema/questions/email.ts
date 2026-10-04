@@ -8,4 +8,6 @@ export const emailQuestion = z.object({
 
 export type EmailQuestion = z.infer<typeof emailQuestion>;
 
+export const blankEmail = (id: string) => emailQuestion.parse({ id, type: "email", title: "" });
+
 export const emailAnswer = (_q: EmailQuestion) => z.email();

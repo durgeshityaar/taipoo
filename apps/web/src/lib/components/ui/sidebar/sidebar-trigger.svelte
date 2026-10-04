@@ -1,3 +1,4 @@
+<!-- design: renders `children` (e.g. the app logo) in place of the panel icon when given. Reapply after --overwrite. -->
 <script lang="ts">
 	import PanelLeftIcon from '@lucide/svelte/icons/panel-left';
 	import { Button } from "$lib/components/ui/button/index.js";
@@ -9,6 +10,7 @@
 		ref = $bindable(null),
 		class: className,
 		onclick,
+		children,
 		...restProps
 	}: ComponentProps<typeof Button> & {
 		onclick?: (e: MouseEvent) => void;
@@ -31,6 +33,6 @@
 	}}
 	{...restProps}
 >
-	<PanelLeftIcon class="cn-rtl-flip" />
+	{#if children}{@render children()}{:else}<PanelLeftIcon class="cn-rtl-flip" />{/if}
 	<span class="sr-only">Toggle Sidebar</span>
 </Button>

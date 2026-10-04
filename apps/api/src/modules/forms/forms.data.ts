@@ -1,4 +1,4 @@
-import type { FormDefinition } from "@taipoo/form-core";
+import type { FormDraft } from "@taipoo/form-core";
 import { and, desc, eq, max, sql } from "drizzle-orm";
 import { db } from "../../db/client";
 import { formVersions, forms } from "../../db/schema";
@@ -6,7 +6,7 @@ import { formVersions, forms } from "../../db/schema";
 // Every query is scoped to the owner, so another user's form behaves exactly like a missing one.
 const owned = (id: string, ownerId: string) => and(eq(forms.id, id), eq(forms.ownerId, ownerId));
 
-export async function insertForm(ownerId: string, draft: FormDefinition) {
+export async function insertForm(ownerId: string, draft: FormDraft) {
   const [form] = await db.insert(forms).values({ ownerId, draft }).returning();
   return form!;
 }
@@ -29,7 +29,7 @@ export async function findOwnedForm(id: string, ownerId: string) {
   return form;
 }
 
-export async function updateOwnedDraft(id: string, ownerId: string, draft: FormDefinition) {
+export async function updateOwnedDraft(id: string, ownerId: string, draft: FormDraft) {
   const [form] = await db.update(forms).set({ draft }).where(owned(id, ownerId)).returning();
   return form;
 }

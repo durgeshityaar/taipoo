@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { page } from '$app/state';
+	import logo from '$lib/assets/taipoo_logo.svg';
 	import AppSidebar from '$lib/components/app-sidebar/app-sidebar.svelte';
 	import * as Breadcrumb from '$lib/components/ui/breadcrumb';
 	import { Separator } from '$lib/components/ui/separator';
@@ -21,11 +22,13 @@
 	<AppSidebar user={data.user} forms={data.forms} />
 	<Sidebar.Inset>
 		<header
-			class="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
+			class="flex h-14 shrink-0 items-center gap-2 border-b border-border md:border-b-0 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
 		>
 			<div class="flex min-w-0 items-center gap-2 px-4">
-				<Sidebar.Trigger class="-ms-1" />
-				<Separator orientation="vertical" class="me-2 data-[orientation=vertical]:h-4" />
+				<Sidebar.Trigger class="-ms-1">
+					<img src={logo} alt="" class="size-6" />
+				</Sidebar.Trigger>
+				<Separator orientation="vertical" class="me-2 data-vertical:h-4 data-vertical:self-center" />
 				<Breadcrumb.Root>
 					<Breadcrumb.List>
 						{#each crumbs as crumb, i (i)}
@@ -49,7 +52,7 @@
 				</div>
 			{/if}
 		</header>
-		<main class="flex flex-1 flex-col gap-4 p-4 pt-0">
+		<main class="flex flex-1 flex-col gap-4 p-4">
 			{@render children()}
 		</main>
 	</Sidebar.Inset>

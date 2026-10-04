@@ -9,4 +9,6 @@ export const shortTextQuestion = z.object({
 
 export type ShortTextQuestion = z.infer<typeof shortTextQuestion>;
 
+export const blankShortText = (id: string) => shortTextQuestion.parse({ id, type: "short_text", title: "" });
+
 export const shortTextAnswer = (q: ShortTextQuestion) => z.string().trim().max(q.maxLength);
