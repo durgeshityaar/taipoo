@@ -1,4 +1,5 @@
-import { answersSchemaFor } from "@taipoo/form-core";
+import { answersSchemaFor, formatAnswer, resultColumns } from "@taipoo/form-core";
+import { toCsv } from "../../lib/csv";
 import { AppError, invalidInput, notFound } from "../../lib/errors";
 import { toPage, type PageQuery } from "../../lib/pagination";
 import { getForm } from "../forms/forms.service";
@@ -37,7 +38,37 @@ export async function submitResponse(slug: string, submission: Submission) {
   await data.insertResponse({ formId, formVersionId: version.id, answers: parsed.data });
 }
 
+// A page of responses, plus what's needed to read them: the total, and every version (newest first) so rows
+// can be labelled with the questions they were answered against.
+// ponytail: all versions ride along on every page; fine at dozens of versions, own endpoint if forms get republished a lot.
 export async function listResponses(userId: string, formId: string, page: PageQuery) {
   await getForm(userId, formId); // 404 unless the caller owns the form
-  return toPage(await data.listByForm(formId, page), page.limit);
+  const [rows, total, versions] = await Promise.all([
+    data.listByForm(formId, page),
+    data.countByForm(formId),
+    data.listVersions(formId),
+  ]);
+  return { ...toPage(rows, page.limit), total, versions };
+}
+
+// Every response as CSV: "Submitted at" plus one column per question (see resultColumns), option labels as the
+// respondent saw them.
+// ponytail: builds the whole file in memory; stream it if a form reaches tens of thousands of responses.
+export async function exportResponsesCsv(userId: string, formId: string) {
+  const form = await getForm(userId, formId);
+  const [rows, versions] = await Promise.all([data.listAllByForm(formId), data.listVersions(formId)]);
+  const byId = new Map(versions.map((v) => [v.id, v.definition]));
+  const columns = resultColumns(versions.map((v) => v.definition));
+  const csv = toCsv([
+    ["Submitted at", ...columns.map((q) => q.title)],
+    ...rows.map((r) => {
+      const version = byId.get(r.formVersionId);
+      return [
+        r.submittedAt.toISOString(),
+        ...columns.map((c) => formatAnswer(version?.questions.find((q) => q.id === c.id), r.answers[c.id])),
+      ];
+    }),
+  ]);
+  const name = (form.draft.title || "form").replace(/[^\w-]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase() || "form";
+  return { csv, filename: `${name}-responses.csv` };
 }

@@ -15,10 +15,11 @@ describe("/api/forms", () => {
     expect(created.status).toBe(201);
     const form = await created.json();
     expect(form).toMatchObject({ draft: { title: "", questions: [] }, publishedVersionId: null });
+    expect((await (await forms[":id"].$get({ param: { id: form.id } })).json()).publishedDefinition).toBeNull();
     expect(form.slug).toMatch(/^[0-9a-f]{12}$/);
 
     const list = await (await forms.$get()).json();
-    expect(list).toEqual([expect.objectContaining({ id: form.id, title: "" })]);
+    expect(list).toEqual([expect.objectContaining({ id: form.id, title: "", responseCount: 0 })]);
 
     const updated = await forms[":id"].draft.$put({ param: { id: form.id }, json: draft });
     expect(updated.status).toBe(200);
@@ -31,6 +32,7 @@ describe("/api/forms", () => {
 
     const got = await (await forms[":id"].$get({ param: { id: form.id } })).json();
     expect(got.publishedVersionId).toBe(v2.id);
+    expect(got.publishedDefinition?.title).toBe("Feedback");
   });
 
   test("publishing a form with no questions → 422", async () => {
@@ -91,6 +93,19 @@ describe("/api/forms", () => {
       expect(res.status).toBe(404);
     }
     expect(await (await bob.$get()).json()).toEqual([]);
+  });
+
+  test("delete removes the form, its live page and its responses; strangers get 404", async () => {
+    const alice = await signedInClient();
+    const bob = await signedInClient();
+    const form = await (await alice.forms.$post({ json: { draft } })).json();
+    await alice.forms[":id"].publish.$post({ param: { id: form.id } });
+
+    expect((await bob.forms[":id"].$delete({ param: { id: form.id } })).status as number).toBe(404);
+    expect((await alice.forms[":id"].$delete({ param: { id: form.id } })).status as number).toBe(204);
+    expect((await alice.forms[":id"].$get({ param: { id: form.id } })).status as number).toBe(404);
+    expect((await client().f[":slug"].$get({ param: { slug: form.slug } })).status as number).toBe(404);
+    expect(await (await alice.forms.$get()).json()).toEqual([]);
   });
 
   test("body over 1 MB → 413", async () => {

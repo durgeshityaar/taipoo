@@ -1,5 +1,5 @@
 import type { Answers } from "@taipoo/form-core";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, count, desc, eq, lt } from "drizzle-orm";
 import { db } from "../../db/client";
 import { formVersions, forms, responses } from "../../db/schema";
 import type { PageQuery } from "../../lib/pagination";
@@ -19,16 +19,35 @@ export async function insertResponse(values: { formId: string; formVersionId: st
   return row!;
 }
 
+const responseFields = {
+  id: responses.id,
+  formVersionId: responses.formVersionId,
+  answers: responses.answers,
+  submittedAt: responses.submittedAt,
+};
+
 // Newest first; fetches limit + 1 so toPage() can tell whether another page exists.
 export const listByForm = (formId: string, { cursor, limit }: PageQuery) =>
   db
-    .select({
-      id: responses.id,
-      formVersionId: responses.formVersionId,
-      answers: responses.answers,
-      submittedAt: responses.submittedAt,
-    })
+    .select(responseFields)
     .from(responses)
     .where(and(eq(responses.formId, formId), cursor ? lt(responses.id, cursor) : undefined))
     .orderBy(desc(responses.id))
     .limit(limit + 1);
+
+// Every response, newest first (CSV export).
+export const listAllByForm = (formId: string) =>
+  db.select(responseFields).from(responses).where(eq(responses.formId, formId)).orderBy(desc(responses.id));
+
+export async function countByForm(formId: string) {
+  const [row] = await db.select({ total: count() }).from(responses).where(eq(responses.formId, formId));
+  return row?.total ?? 0;
+}
+
+// Every published version of a form, newest first: what responses were answered against.
+export const listVersions = (formId: string) =>
+  db
+    .select({ id: formVersions.id, definition: formVersions.definition })
+    .from(formVersions)
+    .where(eq(formVersions.formId, formId))
+    .orderBy(desc(formVersions.version));

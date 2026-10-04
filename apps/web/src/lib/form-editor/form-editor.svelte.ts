@@ -1,19 +1,35 @@
-import { blankQuestions, formDefinition, newId, type FormDraft, type QuestionType } from '@taipoo/form-core';
+import { blankQuestions, formDefinition, formDraft, newId, type FormDraft, type QuestionType } from '@taipoo/form-core';
 import { toast } from 'svelte-sonner';
 import { invalidate } from '$app/navigation';
 import { api } from '$lib/api';
 import * as ops from './draft-ops';
 
-type Form = { id: string; draft: FormDraft; publishedVersionId: string | null };
+type Form = { id: string; slug: string; draft: FormDraft; publishedVersionId: string | null; publishedDefinition: FormDraft | null };
+
+// Canonical JSON for comparing definitions: parsing fixes key order and trims, as the API does on save
+// (Postgres jsonb also reorders keys, so raw JSON from the database can't be compared directly).
+const canonical = (d: FormDraft) => {
+	const parsed = formDraft.safeParse(d);
+	return parsed.success ? JSON.stringify(parsed.data) : null;
+};
+
+// The editor that's on screen, if any. Sidebar actions on that form go through it: it holds unsaved edits,
+// and its autosave would otherwise overwrite a rename or write to a deleted form.
+export const openEditor = $state<{ current: FormEditor | null }>({ current: null });
 
 // The editor's state for one form: the draft being edited, autosave and publish.
 // Every edit goes through a method here, so every edit schedules a save.
 export class FormEditor {
 	readonly id: string;
+	readonly publicUrl: string; // where respondents fill in the live version
 	draft: FormDraft;
 	live: boolean;
 	saveStatus = $state<'idle' | 'saving' | 'saved' | 'error'>('idle');
 	publishing = $state(false);
+	// The live version, as canonical JSON (null until published).
+	#published = $state<string | null>(null);
+	// Live, and the draft differs from what respondents see: publish to update it.
+	hasChanges = $derived.by(() => this.#published !== null && canonical(this.draft) !== this.#published);
 	// Where a "/" insert line is open, as an index into questions (the one at the end is always there).
 	insertAt = $state<number | null>(null);
 	// A block or option to focus once it renders: set when one is created or moved.
@@ -34,8 +50,10 @@ export class FormEditor {
 
 	constructor(form: Form) {
 		this.id = form.id;
+		this.publicUrl = `/f/${form.slug}`;
 		this.draft = $state(form.draft);
 		this.live = $state(form.publishedVersionId !== null);
+		this.#published = form.publishedDefinition && canonical(form.publishedDefinition);
 		this.#savedTitle = form.draft.title;
 	}
 
@@ -109,6 +127,12 @@ export class FormEditor {
 		this.#timer = setTimeout(() => this.flush(), 600);
 	}
 
+	// Drops a pending save (the form is being deleted).
+	discard() {
+		clearTimeout(this.#timer);
+		this.#pending = undefined;
+	}
+
 	async flush() {
 		clearTimeout(this.#timer);
 		const run = this.#pending;
@@ -138,6 +162,7 @@ export class FormEditor {
 		}
 		this.publishing = true;
 		await this.flush(); // publish what's on screen, not the last save
+		const publishing = canonical(this.draft); // edits made while the request is in flight aren't live
 		const res = await api().forms[':id'].publish.$post({ param: { id: this.id } });
 		this.publishing = false;
 		if (!res.ok) {
@@ -146,7 +171,14 @@ export class FormEditor {
 			toast.error(body?.error?.message ?? "Couldn't publish the form. Try again.");
 			return;
 		}
+		const firstPublish = !this.live;
 		this.live = true;
-		toast.success('Published');
+		this.#published = publishing;
+		// Message only, no actions: "Open form ↗" in the header is the way to the live form.
+		if (firstPublish) {
+			toast.success('Your form is live', { description: 'Anyone with the link can now fill it in.' });
+		} else {
+			toast.success('Changes published', { description: 'Respondents now see the latest version.' });
+		}
 	}
 }

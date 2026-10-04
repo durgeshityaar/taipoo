@@ -1,11 +1,12 @@
 <script lang="ts">
 	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import PlusIcon from '@lucide/svelte/icons/plus';
-	import { page } from '$app/state';
 	import * as Collapsible from '$lib/components/ui/collapsible';
 	import * as Sidebar from '$lib/components/ui/sidebar';
+	import type { ComponentProps } from 'svelte';
+	import FormRow from './form-row.svelte';
 
-	// `icon` is optional on both levels: rows render without one, and gain it once the data has it.
+	// A workspace's `icon` is optional: it renders without one, and gains it once the data has it.
 	// `any`: @lucide/svelte's icon types don't satisfy `Component` yet
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	type Icon = any;
@@ -13,7 +14,7 @@
 		name: string;
 		icon?: Icon;
 		open?: boolean;
-		pages: { name: string; url: string; icon?: Icon }[];
+		forms: ComponentProps<typeof FormRow>['form'][];
 	};
 
 	let { workspaces, oncreate }: { workspaces: Workspace[]; oncreate: (workspace: Workspace) => void } =
@@ -47,19 +48,8 @@
 							</Sidebar.MenuAction>
 							<Collapsible.Content>
 								<Sidebar.MenuSub>
-									{#each workspace.pages as item (item.url)}
-										<Sidebar.MenuSubItem>
-											<Sidebar.MenuSubButton isActive={page.url.pathname.startsWith(item.url)}>
-												{#snippet child({ props })}
-													<a href={item.url} {...props}>
-														{#if item.icon}
-															<item.icon />
-														{/if}
-														<span>{item.name}</span>
-													</a>
-												{/snippet}
-											</Sidebar.MenuSubButton>
-										</Sidebar.MenuSubItem>
+									{#each workspace.forms as form (form.id)}
+										<FormRow {form} />
 									{:else}
 										<li class="px-2 py-1 text-caption text-muted-foreground">No forms yet</li>
 									{/each}

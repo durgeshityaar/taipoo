@@ -41,6 +41,13 @@ export const formsRoutes = new Hono<AuthEnv>()
     return c.json(form);
   })
 
+  // DELETE /api/forms/:id: the form, all its versions and all its responses
+  .delete("/:id", formId, async (c) => {
+    const { id } = c.req.valid("param");
+    await service.deleteForm(c.get("user").id, id);
+    return c.body(null, 204);
+  })
+
   // POST /api/forms/:id/publish: snapshot the draft as the next version and make it live
   .post("/:id/publish", formId, async (c) => {
     const { id } = c.req.valid("param");

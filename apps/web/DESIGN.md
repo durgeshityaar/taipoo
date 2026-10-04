@@ -75,7 +75,7 @@ components:
     hover: "{colors.hover-overlay} layered on the fill"
     rounded: "{rounded.md}"
   button-pill:
-    description: "Hero actions only: empty-state CTAs, the public form's Start / Submit."
+    description: "Hero actions only: empty-state CTAs, the public form's Submit."
     rounded: "{rounded.full}"
   input:
     backgroundColor: "{colors.surface}"
@@ -101,7 +101,8 @@ components:
     backgroundColor: "{colors.canvas}"
     border: "1px {colors.hairline}"
     rowHover: "none on nav rows (only the active row changes); {colors.hover-overlay} on the header switcher and footer user menu"
-    rowAction: "hidden until its own row is hovered or focused (e.g. + on a workspace)"
+    rowAction: "hidden until its own row is hovered or focused (e.g. + on a workspace, ⋯ on a form)"
+    formMenu: "a form row's ⋯ opens a menu-panel to the right: Edit, Rename (inline input in the row), Copy link to share (disabled until live), Duplicate, then a separator and Delete (destructive, confirmed with AlertDialog); toasts are messages only"
     rowText: "{colors.ink-muted}"
     rowActive: "{colors.ink}, medium weight, no fill"
     rowRounded: "{rounded.md}"
@@ -139,6 +140,25 @@ components:
     issue: "{typography.caption}, {colors.destructive}, directly under the field"
     submitPreview: "button-pill \"Submit →\" after the last block, inert"
     gap: 32px between blocks
+  public-form:
+    description: "/f/<slug>: one page on the canvas, max-w-2xl; looks like the editor so what you build is what respondents see"
+    title: "{typography.heading-1}, description in {typography.body-md} {colors.ink-muted}"
+    question: "title in {typography.title} with a {colors.ink-muted} asterisk when required; error in {typography.caption} {colors.destructive} under the field"
+    fields: "44px tall, surface, {colors.hairline-strong} border, {rounded.md}, soft shadow (the editor's answer box); long answers grow from 112px"
+    choices: "the editor's lettered option chips; selected = {colors.primary} border and ring, letter badge filled {colors.primary}"
+    submit: "button-pill with an arrow; thank-you screen: message in {typography.heading-2}, centred"
+    badge: "\"Made with Taipoo\" + logo, fixed bottom-right: surface, {colors.hairline} border, {rounded.md}, {typography.caption} semibold {colors.primary}"
+    preview: "the editor's Preview renders the same view full screen over the editor, with an outline \"Back to editor\" button (Esc also closes); submitting validates but saves nothing"
+  home:
+    description: "/dashboard: Notion-style home. Greeting in {typography.heading-2}, then \"Your forms · n\" ({typography.eyebrow}, {colors.ink-muted}) over a surface list card ({rounded.lg}, {colors.hairline} border)"
+    rows: "file icon + name (medium) · status (Live = {colors.success} dot + text, Draft = {colors.ink-muted}) · responses (links to Results) · edited (relative time, exact time on hover) · ⋯ on hover"
+    empty: "empty-state card: logo, \"No forms yet\", one line of copy, pill New form; the header always has a primary + New form"
+  results-table:
+    description: "/forms/<id>/results: a Notion-style database of responses; title, count and table share one left edge"
+    header: "{colors.canvas} band, each column = question-type icon + title in {typography.caption} {colors.ink-muted}; first column \"Submitted\" with a calendar icon"
+    cells: "{typography.body-sm}, one line, truncated, 192–320px wide, {colors.hairline} borders, {colors.hover-overlay} row hover; the table scrolls sideways inside the page"
+    sidePeek: "clicking a row opens a right Sheet with the whole response: type icon + title in {typography.caption} {colors.ink-muted}, answer in {typography.body-md} with line breaks kept, — when unanswered"
+    actions: "header: Copy link, Download CSV (quiet), Edit (primary); Load more as an outline button under the table"
   empty-state:
     backgroundColor: "{colors.canvas}"
     rounded: "{rounded.xl}"
@@ -192,8 +212,8 @@ Colour is used for exactly one structural job: **action**. The single blue `{col
 
 | Role (Tailwind class) | Size / weight / line-height / tracking | Use |
 |---|---|---|
-| `text-heading-1` | 40 / 700 / 1.1 / −1px | public form question text |
-| `text-heading-2` | 26 / 700 / 1.23 / −0.625px | page titles ("Your forms", a form's name in the builder); large public form questions |
+| `text-heading-1` | 40 / 700 / 1.1 / −1px | form title (editor and public form) |
+| `text-heading-2` | 26 / 700 / 1.23 / −0.625px | page titles ("Your forms"); the public form's thank-you message |
 | `text-heading-3` | 22 / 700 / 1.27 / −0.25px | reserved |
 | `text-title` | 20 / 600 / 1.4 / −0.125px | section titles, auth card titles |
 | `text-title-sm` | 16 / 600 / 1.5 / −0.01em | card titles |
@@ -217,7 +237,7 @@ Buttons and form labels use 14px / 500. Inputs use 15px on desktop and **16px on
 - 32–64px: gaps between page sections.
 
 ### App shell
-A sidebar that collapses to icons (`collapsible="icon"`, ⌘B, or the rail) with a workspace switcher in the header, the nav menu, and a user menu in the footer. The top bar (56px, 48px when collapsed; on the canvas, with a hairline bottom edge only below md where the sidebar becomes a sheet) holds the trigger and a breadcrumb, with page actions on the right as quiet caption text plus at most one compact primary button; content fills the remaining width with 16px padding. Pages that read better narrow (forms, settings) constrain themselves with `max-w-*`.
+A sidebar that collapses to icons (`collapsible="icon"`, ⌘B, or the rail) with a workspace switcher in the header, the nav menu, and a user menu in the footer. The top bar (56px, 48px when collapsed; on the canvas, with a hairline bottom edge only below md where the sidebar becomes a sheet) holds the trigger and a breadcrumb, with page actions on the right as quiet caption text plus at most one compact primary button (the editor: an info "Changes" badge when the live form is behind the draft, status, Open form ↗, Preview, Publish); content fills the remaining width with 16px padding. Pages that read better narrow (forms, settings) constrain themselves with `max-w-*`.
 
 ### Responsive
 | Breakpoint | Behaviour |
@@ -279,7 +299,6 @@ Built on shadcn-svelte (`src/lib/components/ui`). Use these; don't hand-roll equ
 | Feedback | `toast()` from `svelte-sonner` (mounted once in the root layout) |
 | Data | `Table` — eyebrow header on canvas, 12/16px cells, hover overlay |
 | Sections | `Tabs` (e.g. Questions / Settings / Share) |
-| Progress | `Progress` (public form "3 of 8") |
 | Empty state | `Card` on canvas, `rounded-xl`, 32px padding, one pill action |
 
 ## Implementation

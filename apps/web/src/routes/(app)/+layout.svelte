@@ -6,21 +6,23 @@
 	import { Separator } from '$lib/components/ui/separator';
 	import * as Sidebar from '$lib/components/ui/sidebar';
 	import { pageHeader } from '$lib/page-header.svelte';
+	import { workspace } from '$lib/workspace';
 
 	let { data, children } = $props();
 
-	// Pages with their own trail (the editor) set pageHeader.crumbs; others get "Taipoo › <title>".
+	// Pages with their own trail (the editor) set pageHeader.crumbs; others get "<workspace> › <title>".
 	// New top-level page → one entry here.
-	const titles: Record<string, string> = { '/dashboard': 'Dashboard' };
+	const titles: Record<string, string> = { '/dashboard': 'Home' };
 	const crumbs = $derived(
-		pageHeader.crumbs ?? ['Taipoo', titles[page.url.pathname]].filter((crumb) => crumb !== undefined)
+		pageHeader.crumbs ?? [workspace.name, titles[page.url.pathname]].filter((crumb) => crumb !== undefined)
 	);
 </script>
 
 <!-- App shell: collapsible sidebar + top bar (trigger, breadcrumb, page actions). See DESIGN.md → App shell. -->
 <Sidebar.Provider>
 	<AppSidebar user={data.user} forms={data.forms} />
-	<Sidebar.Inset>
+	<!-- min-w-0: wide content (the results table) scrolls inside instead of widening the page past the screen. -->
+	<Sidebar.Inset class="min-w-0">
 		<header
 			class="flex h-14 shrink-0 items-center gap-2 border-b border-border md:border-b-0 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12"
 		>
