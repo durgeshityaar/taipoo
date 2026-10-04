@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { answersSchemaFor, type Answers, type FormDraft, type Question } from '@taipoo/form-core';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
-	import { tick, type Component } from 'svelte';
+	import { onMount, tick, type Component } from 'svelte';
 	import logo from '$lib/assets/taipoo_logo.svg';
 	import { questionKinds, type FieldProps } from '$lib/components/questions';
 	import { Button } from '$lib/components/ui/button';
@@ -24,6 +24,10 @@
 	let answers = $state<Record<string, string | string[]>>({});
 	let website = $state(''); // honeypot
 	let submitting = $state(false);
+	// The public page is server-rendered: until its JavaScript runs, Submit would do a plain browser submit
+	// (a GET reload) and lose every answer. So it starts disabled and turns on once the page is interactive.
+	let ready = $state(false);
+	onMount(() => (ready = true));
 	let submitted = $state(false);
 	let attempted = $state(false);
 	let serverErrors = $state<Record<string, string>>({});
@@ -106,7 +110,7 @@
 			/>
 
 			<div>
-				<Button type="submit" shape="pill" size="lg" disabled={submitting}>
+				<Button type="submit" shape="pill" size="lg" disabled={!ready || submitting}>
 					{submitting ? 'Submitting…' : 'Submit'}
 					<ArrowRightIcon />
 				</Button>
