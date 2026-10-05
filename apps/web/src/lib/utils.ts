@@ -3,7 +3,7 @@ import { defaultConfig } from "tailwind-variants";
 
 // Our type roles (layout.css → @theme --text-*) are font sizes. Unregistered, the class mergers read
 // `text-eyebrow` as a color and drop it next to `text-muted-foreground` (or vice versa).
-const typeRoles = ["heading-1", "heading-2", "heading-3", "title", "title-sm", "body-md", "body-sm", "caption", "nav", "eyebrow"];
+const typeRoles = ["display", "heading-1", "heading-2", "heading-3", "title", "title-sm", "body-md", "body-sm", "caption", "nav", "eyebrow"];
 const mergeConfig = { extend: { classGroups: { "font-size": [{ text: typeRoles }] } } };
 
 export const cn = createCn(mergeConfig);

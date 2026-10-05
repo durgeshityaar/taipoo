@@ -118,6 +118,10 @@
 	/* Type roles (text-heading-2 …): size + line-height + tracking + weight in one class (DESIGN.md → Typography).
 	   Mapping: page title = heading-2, section = title, card title = title-sm, metadata = caption, sidebar rows = nav,
 	   badges = eyebrow; public form questions use heading-1/heading-2. */
+	--text-display: clamp(44px, 8vw, 80px); /* landing hero only */
+	--text-display--line-height: 1.05;
+	--text-display--letter-spacing: -0.04em;
+	--text-display--font-weight: 700;
 	--text-heading-1: 40px;
 	--text-heading-1--line-height: 1.1;
 	--text-heading-1--letter-spacing: -1px;
