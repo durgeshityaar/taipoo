@@ -14,7 +14,7 @@ describe("/api/forms", () => {
     const created = await forms.$post({ json: {} });
     expect(created.status).toBe(201);
     const form = await created.json();
-    expect(form).toMatchObject({ draft: { title: "", questions: [] }, publishedVersionId: null });
+    expect(form).toMatchObject({ draft: { title: "", blocks: [] }, publishedVersionId: null });
     expect((await (await forms[":id"].$get({ param: { id: form.id } })).json()).publishedDefinition).toBeNull();
     expect(form.slug).toMatch(/^[0-9a-f]{12}$/);
 
@@ -37,10 +37,10 @@ describe("/api/forms", () => {
 
   test("publishing a form with no questions → 422", async () => {
     const forms = (await signedInClient()).forms;
-    const form = await (await forms.$post({ json: { draft: { ...draft, questions: [] } } })).json();
+    const form = await (await forms.$post({ json: { draft: { ...draft, blocks: [] } } })).json();
     const res = await forms[":id"].publish.$post({ param: { id: form.id } });
     expect(res.status as number).toBe(422); // thrown errors aren't in the RPC types, only returned responses
-    expect(await res.json()).toMatchObject({ error: { code: "not_publishable", details: [{ path: "questions" }] } });
+    expect(await res.json()).toMatchObject({ error: { code: "not_publishable", details: [{ path: "blocks" }] } });
   });
 
   test("publishing an untitled form → 422", async () => {
@@ -56,11 +56,11 @@ describe("/api/forms", () => {
     const form = await (await forms.$post({ json: {} })).json();
     const res = await forms[":id"].draft.$put({
       param: { id: form.id },
-      json: { ...draft, questions: [{ id: "q1", type: "email", title: "x".repeat(501) }] },
+      json: { ...draft, blocks: [{ id: "q1", type: "email", title: "x".repeat(501) }] },
     });
     expect(res.status).toBe(400);
     expect(await res.json()).toMatchObject({
-      error: { code: "invalid_input", details: [{ path: "questions.0.title" }] },
+      error: { code: "invalid_input", details: [{ path: "blocks.0.title" }] },
     });
   });
 
@@ -69,13 +69,28 @@ describe("/api/forms", () => {
     const form = await (await forms.$post({ json: {} })).json();
     const saved = await forms[":id"].draft.$put({
       param: { id: form.id },
-      json: { ...draft, questions: [{ id: "q1", type: "email", title: "" }] },
+      json: { ...draft, blocks: [{ id: "q1", type: "email", title: "" }] },
     });
     expect(saved.status).toBe(200);
     const res = await forms[":id"].publish.$post({ param: { id: form.id } });
     expect(res.status as number).toBe(422);
     expect(await res.json()).toMatchObject({
-      error: { code: "not_publishable", details: [{ path: "questions.0.title", message: "Required" }] },
+      error: { code: "not_publishable", details: [{ path: "blocks.0.title", message: "Required" }] },
+    });
+  });
+
+  test("draft with a page break saves; trailing page break blocks publish", async () => {
+    const forms = (await signedInClient()).forms;
+    const form = await (await forms.$post({ json: {} })).json();
+    const saved = await forms[":id"].draft.$put({
+      param: { id: form.id },
+      json: { ...draft, blocks: [...draft.blocks, { id: "p2", type: "page_break" }] },
+    });
+    expect(saved.status).toBe(200);
+    const res = await forms[":id"].publish.$post({ param: { id: form.id } });
+    expect(res.status as number).toBe(422);
+    expect(await res.json()).toMatchObject({
+      error: { code: "not_publishable", details: [{ path: "blocks.1", message: "This page has no questions" }] },
     });
   });
 

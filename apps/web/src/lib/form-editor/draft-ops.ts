@@ -1,4 +1,4 @@
-import { newId, type FormDraft, type Question } from '@taipoo/form-core';
+import { isQuestion, newId, type Block, type FormDraft, type Question } from '@taipoo/form-core';
 
 // Edits to a draft, in place (so they work on a $state proxy and on plain objects in tests).
 // Unknown ids and out-of-range moves are no-ops.
@@ -6,48 +6,48 @@ import { newId, type FormDraft, type Question } from '@taipoo/form-core';
 // Any of a question's own fields, for whichever type it is (Omit isn't distributive, hence the conditional).
 export type QuestionPatch = Question extends infer Q ? (Q extends Question ? Partial<Omit<Q, 'id' | 'type'>> : never) : never;
 
-const find = (d: FormDraft, id: string) => d.questions.find((q) => q.id === id);
+const find = (d: FormDraft, id: string) => d.blocks.find((b) => b.id === id);
 const options = (d: FormDraft, id: string) => {
 	const q = find(d, id);
 	return q?.type === 'multiple_choice' ? q.options : [];
 };
 
-export function insert(d: FormDraft, at: number, q: Question) {
-	d.questions.splice(at, 0, q);
+export function insert(d: FormDraft, at: number, b: Block) {
+	d.blocks.splice(at, 0, b);
 }
 
 export function update(d: FormDraft, id: string, patch: QuestionPatch) {
-	const q = find(d, id);
-	if (q) Object.assign(q, patch);
+	const b = find(d, id);
+	if (b && isQuestion(b)) Object.assign(b, patch);
 }
 
 export function remove(d: FormDraft, id: string) {
-	const i = d.questions.findIndex((q) => q.id === id);
-	if (i !== -1) d.questions.splice(i, 1);
+	const i = d.blocks.findIndex((b) => b.id === id);
+	if (i !== -1) d.blocks.splice(i, 1);
 }
 
-// Copies a question (fresh ids for it and its options) right below it. Returns the copy's id.
+// Copies a block (fresh ids for it and its options) right below it. Returns the copy's id.
 export function duplicate(d: FormDraft, id: string) {
-	const i = d.questions.findIndex((q) => q.id === id);
+	const i = d.blocks.findIndex((b) => b.id === id);
 	if (i === -1) return;
-	const copy = structuredClone(d.questions[i]!);
+	const copy = structuredClone(d.blocks[i]!);
 	copy.id = newId();
 	if (copy.type === 'multiple_choice') for (const o of copy.options) o.id = newId();
-	d.questions.splice(i + 1, 0, copy);
+	d.blocks.splice(i + 1, 0, copy);
 	return copy.id;
 }
 
-// Puts questions in the order of `ids` (after a drag); unknown ids are ignored, unlisted questions keep their place at the end.
+// Puts blocks in the order of `ids` (after a drag); unknown ids are ignored, unlisted blocks keep their place at the end.
 export function reorder(d: FormDraft, ids: string[]) {
 	const rank = new Map(ids.map((id, i) => [id, i]));
-	d.questions.sort((a, b) => (rank.get(a.id) ?? ids.length) - (rank.get(b.id) ?? ids.length));
+	d.blocks.sort((a, b) => (rank.get(a.id) ?? ids.length) - (rank.get(b.id) ?? ids.length));
 }
 
 export function move(d: FormDraft, id: string, by: -1 | 1) {
-	const i = d.questions.findIndex((q) => q.id === id);
+	const i = d.blocks.findIndex((b) => b.id === id);
 	const j = i + by;
-	if (i === -1 || j < 0 || j >= d.questions.length) return;
-	[d.questions[i], d.questions[j]] = [d.questions[j]!, d.questions[i]!];
+	if (i === -1 || j < 0 || j >= d.blocks.length) return;
+	[d.blocks[i], d.blocks[j]] = [d.blocks[j]!, d.blocks[i]!];
 }
 
 // Returns the new option's id, or undefined if the question isn't multiple choice.

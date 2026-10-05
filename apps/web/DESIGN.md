@@ -132,21 +132,22 @@ components:
     rowHover: "{colors.hover-overlay}"
   editor-block:
     description: "a question in the form editor: borderless, on the canvas, like a line in a document"
-    gutter: "trash · + · ⠿ as 24px ghost icon buttons (16px icons) hanging in the left margin, centred on the title line, {colors.ink-muted}, shown on hover only (always on touch screens); narrow layouts pad the column so the gutter fits. + opens the question-type menu in place, ⠿ drags to reorder and opens the block menu"
+    gutter: "trash · + · ⠿ as 24px ghost icon buttons (16px icons) hanging in the left margin, centred on the title line, {colors.ink-muted}, shown on hover only (always on touch screens); narrow layouts pad the column so the gutter fits. + opens the block-type menu (Questions, Layout blocks) in place, ⠿ drags to reorder and opens the block menu"
     titleTypography: "{typography.title}, sized to its text, placeholder \"Type a question\" in {colors.ink-faint}; the answer box starts on the same left edge"
     requiredChip: "18px round {colors.hover-overlay} chip with an asterisk right after the title, only on required questions; clicking it makes the question optional"
     blockMenu: "menu-panel popover: type icon + title header, switch rows (Required, type settings), then action rows with shortcut hints in {typography.caption} {colors.ink-muted}"
     answerPreview: "an empty input (surface, {colors.hairline-strong} border, {rounded.md}, 36px, 14px side padding) with the type icon on the right in {colors.ink-muted}; multiple-choice options are the same box as a chip sized to its text, led by a 20px letter badge (A, B…; {colors.ink-muted} fill, white eyebrow text), then a fainter hairline \"Add option\" chip with the next letter"
     issue: "{typography.caption}, {colors.destructive}, directly under the field"
     submitPreview: "button-pill \"Submit →\" after the last block, inert"
+    pageBreak: "\"New page\" layout block: an inert button-pill \"Next →\" (ending the page above), then a 28px divider: {colors.hairline} line – \"Page N\" in {typography.caption} {colors.ink-muted} – line, with the block gutter; its issue sits under it"
     gap: 32px between blocks
   public-form:
-    description: "/f/<slug>: one page on the canvas, max-w-2xl; looks like the editor so what you build is what respondents see"
+    description: "/f/<slug>: one column on the canvas, max-w-2xl, one form page at a time; looks like the editor so what you build is what respondents see"
     title: "{typography.heading-1}, description in {typography.body-md} {colors.ink-muted}"
     question: "title in {typography.title} with a {colors.ink-muted} asterisk when required; error in {typography.caption} {colors.destructive} under the field"
     fields: "44px tall, surface, {colors.hairline-strong} border, {rounded.md}, soft shadow (the editor's answer box); long answers grow from 112px"
     choices: "the editor's lettered option chips; selected = {colors.primary} border and ring, letter badge filled {colors.primary}"
-    submit: "button-pill with an arrow; thank-you screen: message in {typography.heading-2}, centred"
+    submit: "button-pill with an arrow: \"Next\" (checks only that page) until the last page, then \"Submit\"; pages 2+ start with a ghost \"← Back\" above the title; thank-you screen: message in {typography.heading-2}, centred"
     badge: "\"Made with Taipoo\" + logo, fixed bottom-right: surface, {colors.hairline} border, {rounded.md}, {typography.caption} semibold {colors.primary}"
     preview: "the editor's Preview renders the same view full screen over the editor, with an outline \"Back to editor\" button (Esc also closes); submitting validates but saves nothing"
   home:

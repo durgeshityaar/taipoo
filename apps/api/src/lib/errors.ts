@@ -18,7 +18,7 @@ export const notFound = (what: string) => new AppError(404, "not_found", `${what
 export const forbidden = () => new AppError(403, "forbidden", "Forbidden");
 export const unauthorized = () => new AppError(401, "unauthorized", "Sign in required");
 
-// One { path, message } per zod issue, e.g. { path: "questions.0.title", message: "Too small…" }.
+// One { path, message } per zod issue, e.g. { path: "blocks.0.title", message: "Too small…" }.
 export const toDetails = (error: Pick<z.core.$ZodError, "issues">) =>
   error.issues.map((i) => ({ path: i.path.join("."), message: i.message }));
 

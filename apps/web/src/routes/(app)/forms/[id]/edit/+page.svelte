@@ -1,11 +1,12 @@
 <script lang="ts">
-	import type { Question } from '@taipoo/form-core';
+	import type { Block } from '@taipoo/form-core';
 	import ArrowRightIcon from '@lucide/svelte/icons/arrow-right';
 	import { untrack } from 'svelte';
 	import { afterNavigate } from '$app/navigation';
 	import { flip } from 'svelte/animate';
 	import { dragHandleZone, setKeyboardDragTrigger, type DndEvent } from 'svelte-dnd-action';
 	import InsertLine from '$lib/components/questions/insert-line.svelte';
+	import PageBreakBlock from '$lib/components/questions/page-break-block.svelte';
 	import QuestionBlock from '$lib/components/questions/question-block.svelte';
 	import { Badge } from '$lib/components/ui/badge';
 	import { Button } from '$lib/components/ui/button';
@@ -51,15 +52,20 @@
 	// ponytail: no keyboard dragging; Space/Enter on ⠿ open its menu, and Alt+↑/↓ or Move up/down reorder.
 	setKeyboardDragTrigger(null);
 	const flipDurationMs = 150;
-	let dragItems = $state<Question[] | null>(null);
-	const items = $derived(dragItems ?? editor.draft.questions);
+	let dragItems = $state<Block[] | null>(null);
+	const items = $derived(dragItems ?? editor.draft.blocks);
+	// The page number each block is on (a page break starts the next one).
+	const pageNumbers = $derived.by(() => {
+		let page = 1;
+		return items.map((b) => (b.type === 'page_break' ? ++page : page));
+	});
 
-	function onconsider(e: CustomEvent<DndEvent<Question>>) {
+	function onconsider(e: CustomEvent<DndEvent<Block>>) {
 		dragItems = e.detail.items;
 	}
 
-	function onfinalize(e: CustomEvent<DndEvent<Question>>) {
-		editor.reorder(e.detail.items.map((q) => q.id));
+	function onfinalize(e: CustomEvent<DndEvent<Block>>) {
+		editor.reorder(e.detail.items.map((b) => b.id));
 		dragItems = null;
 	}
 
@@ -144,16 +150,21 @@
 	<div class="mt-10 flex flex-col gap-8">
 		{#if items.length > 0}
 			{#if editor.insertAt === 0}<InsertLine {editor} at={0} />{/if}
-			<!-- Each child is one item for the drag library; a block renders the insert line under it itself. -->
+			<!-- Each child is one item for the drag library, carrying the insert line opened under it (the one after the last block is below). -->
 			<div
 				use:dragHandleZone={{ items, flipDurationMs, dropTargetStyle: {} }}
 				{onconsider}
 				{onfinalize}
 				class="flex flex-col gap-8"
 			>
-				{#each items as question, index (question.id)}
-					<div animate:flip={{ duration: flipDurationMs }}>
-						<QuestionBlock {editor} {question} {index} />
+				{#each items as block, index (block.id)}
+					<div animate:flip={{ duration: flipDurationMs }} class="flex flex-col gap-8">
+						{#if block.type === 'page_break'}
+							<PageBreakBlock {editor} {block} {index} page={pageNumbers[index]!} />
+						{:else}
+							<QuestionBlock {editor} question={block} {index} />
+						{/if}
+						{#if editor.insertAt === index + 1 && index < items.length - 1}<InsertLine {editor} at={index + 1} />{/if}
 					</div>
 				{/each}
 			</div>
@@ -163,7 +174,7 @@
 		{#if items.length === 0 || editor.insertAt === items.length}
 			<div>
 				<InsertLine {editor} at={items.length} idle={items.length === 0 ? 'Press Enter to start from scratch' : ''} />
-				{#if editor.issues.questions}<p class="mt-1 text-caption text-destructive">{editor.issues.questions}</p>{/if}
+				{#if editor.issues.blocks}<p class="mt-1 text-caption text-destructive">{editor.issues.blocks}</p>{/if}
 			</div>
 		{/if}
 		<!-- What respondents will see at the end of the form; not a control here. -->

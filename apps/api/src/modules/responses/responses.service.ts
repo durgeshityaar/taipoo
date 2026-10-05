@@ -1,4 +1,4 @@
-import { answersSchemaFor, formatAnswer, resultColumns } from "@taipoo/form-core";
+import { answersSchemaFor, formatAnswer, questionsById, resultColumns } from "@taipoo/form-core";
 import { toCsv } from "../../lib/csv";
 import { AppError, invalidInput, notFound } from "../../lib/errors";
 import { toPage, type PageQuery } from "../../lib/pagination";
@@ -57,7 +57,7 @@ export async function listResponses(userId: string, formId: string, page: PageQu
 export async function exportResponsesCsv(userId: string, formId: string) {
   const form = await getForm(userId, formId);
   const [rows, versions] = await Promise.all([data.listAllByForm(formId), data.listVersions(formId)]);
-  const byId = new Map(versions.map((v) => [v.id, v.definition]));
+  const byId = new Map(versions.map((v) => [v.id, questionsById(v.definition)]));
   const columns = resultColumns(versions.map((v) => v.definition));
   const csv = toCsv([
     ["Submitted at", ...columns.map((q) => q.title)],
@@ -65,7 +65,7 @@ export async function exportResponsesCsv(userId: string, formId: string) {
       const version = byId.get(r.formVersionId);
       return [
         r.submittedAt.toISOString(),
-        ...columns.map((c) => formatAnswer(version?.questions.find((q) => q.id === c.id), r.answers[c.id])),
+        ...columns.map((c) => formatAnswer(version?.get(c.id), r.answers[c.id])),
       ];
     }),
   ]);

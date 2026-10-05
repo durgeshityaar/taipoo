@@ -4,9 +4,10 @@ import { formDefinition } from "./form";
 
 const form = formDefinition.parse({
   title: "Signup",
-  questions: [
+  blocks: [
     { id: "name", type: "short_text", title: "Your name", required: true },
     { id: "bio", type: "long_text", title: "About you" },
+    { id: "page2", type: "page_break" },
     { id: "email", type: "email", title: "Email", required: true },
     {
       id: "plan",
@@ -69,5 +70,9 @@ describe("answersSchemaFor", () => {
 
   test("rejects answers for questions not in the form", () => {
     expect(answers.safeParse({ ...valid, injected: "x" }).success).toBe(false);
+  });
+
+  test("page breaks collect no answers", () => {
+    expect(answers.safeParse({ ...valid, page2: "x" }).success).toBe(false);
   });
 });

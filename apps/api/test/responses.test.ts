@@ -60,6 +60,18 @@ describe("POST /api/f/:slug/responses", () => {
     expect(error.details.map((d) => d.path).sort()).toEqual(["", "q1"]); // "" = unrecognized key "extra"
   });
 
+  test("answers to a two-page form validate across pages", async () => {
+    const owner = await signedInClient();
+    const email = { id: "email", type: "email" as const, title: "Email", required: true };
+    const form = await publishForm(owner, { ...sampleDraft, blocks: [...sampleDraft.blocks, { id: "p2", type: "page_break" }, email] });
+
+    const missing = await submit(form.slug, { versionId: form.versionId, answers: { q1: "Ada" } });
+    expect(missing.status as number).toBe(400);
+    expect(await missing.json()).toMatchObject({ error: { details: [{ path: "email" }] } });
+    const ok = await submit(form.slug, { versionId: form.versionId, answers: { q1: "Ada", email: "ada@example.com" } });
+    expect(ok.status).toBe(201);
+  });
+
   test("answering an outdated version → 409 form_updated", async () => {
     const owner = await signedInClient();
     const form = await publishForm(owner);
@@ -124,7 +136,7 @@ describe("owner: GET /api/forms/:id/responses", () => {
 describe("owner: GET /api/forms/:id/responses.csv", () => {
   const name = { id: "name", type: "short_text" as const, title: "Name" };
   const food = { id: "food", type: "multiple_choice" as const, title: "Food", options: [{ id: "p", label: "Pizza" }, { id: "s", label: "Sushi" }] };
-  const draft = { title: "Team lunch!", questions: [name, { id: "gone", type: "email" as const, title: "Email" }, food] };
+  const draft = { title: "Team lunch!", blocks: [name, { id: "gone", type: "email" as const, title: "Email" }, food] };
 
   test("one column per question across versions, labels as answered, escaped cells", async () => {
     const owner = await signedInClient();
@@ -134,7 +146,7 @@ describe("owner: GET /api/forms/:id/responses.csv", () => {
     // v2: Pizza renamed, Email deleted
     await owner.forms[":id"].draft.$put({
       param: { id: v1.id },
-      json: { ...draft, questions: [name, { ...food, options: [{ id: "p", label: "Pizza slice" }, { id: "s", label: "Sushi" }] }] },
+      json: { ...draft, blocks: [name, { ...food, options: [{ id: "p", label: "Pizza slice" }, { id: "s", label: "Sushi" }] }] },
     });
     const v2 = await (await owner.forms[":id"].publish.$post({ param: { id: v1.id } })).json();
     await submit(v1.slug, { versionId: v2.id, answers: { name: "=HYPERLINK(1)", food: "p" } });

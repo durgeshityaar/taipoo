@@ -35,7 +35,7 @@ export async function renameForm(id: string, title: string) {
 	await invalidate('app:forms');
 }
 
-// A new, unpublished form with the same questions. Stays where you are.
+// A new, unpublished form with the same blocks. Stays where you are.
 export async function duplicateForm(id: string) {
 	const editor = openEditor.current;
 	if (editor?.id === id) await editor.flush(); // copy what's on screen

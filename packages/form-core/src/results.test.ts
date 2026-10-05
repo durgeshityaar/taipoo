@@ -1,10 +1,10 @@
 import { describe, expect, test } from "bun:test";
-import { formatAnswer, resultColumns } from "./results";
+import { formatAnswer, questionsById, resultColumns } from "./results";
 import { formDefinition } from "./schema";
 
 const v1 = formDefinition.parse({
   title: "Survey",
-  questions: [
+  blocks: [
     { id: "name", type: "short_text", title: "Name" },
     { id: "old", type: "email", title: "Email (removed later)" },
     { id: "plan", type: "multiple_choice", title: "Plan", options: [{ id: "a", label: "Free" }, { id: "b", label: "Pro" }] },
@@ -12,7 +12,7 @@ const v1 = formDefinition.parse({
 });
 const v2 = formDefinition.parse({
   title: "Survey",
-  questions: [
+  blocks: [
     { id: "plan", type: "multiple_choice", title: "Your plan", options: [{ id: "a", label: "Starter" }, { id: "b", label: "Pro" }] },
     { id: "name", type: "short_text", title: "Full name" },
     { id: "days", type: "multiple_choice", title: "Days", allowMultiple: true, options: [{ id: "d1", label: "Mon" }, { id: "d2", label: "Tue" }] },
@@ -26,7 +26,7 @@ describe("resultColumns", () => {
 });
 
 describe("formatAnswer", () => {
-  const question = (v: typeof v1, id: string) => v.questions.find((q) => q.id === id);
+  const question = (v: typeof v1, id: string) => questionsById(v).get(id);
 
   test("option labels come from the response's own version", () => {
     expect(formatAnswer(question(v1, "plan"), "a")).toBe("Free");

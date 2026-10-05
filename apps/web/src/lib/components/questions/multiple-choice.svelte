@@ -4,7 +4,7 @@
 
 	let { editor, question, index }: EditorProps<'multiple_choice'> = $props();
 
-	const issue = (path: string) => editor.issues[`questions.${index}.${path}`];
+	const issue = (path: string) => editor.issues[`blocks.${index}.${path}`];
 
 	function onkeydown(e: KeyboardEvent & { currentTarget: HTMLInputElement }, j: number, optionId: string) {
 		if (e.key === 'Enter' && !e.isComposing) {

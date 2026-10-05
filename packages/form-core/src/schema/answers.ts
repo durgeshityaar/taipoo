@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { FormDefinition } from "./form";
+import { questionsOf } from "./blocks";
 import { answerValidators, type Question } from "./questions";
 
 // Stored shape of a submission: questionId → answer. Unanswered optional questions are omitted.
@@ -29,7 +30,7 @@ function answerSchemaFor(q: Question) {
 // exactly the stored `Answers` shape. Strict: answers for question ids that aren't in the form are rejected.
 export function answersSchemaFor(form: FormDefinition) {
   return z
-    .strictObject(Object.fromEntries(form.questions.map((q) => [q.id, answerSchemaFor(q)])))
+    .strictObject(Object.fromEntries(questionsOf(form).map((q) => [q.id, answerSchemaFor(q)])))
     .transform((parsed): Answers => {
       // unanswered optional questions come out as undefined; drop them so they're omitted, not stored as null
       const answered: Answers = {};

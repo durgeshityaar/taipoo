@@ -1,4 +1,4 @@
-import { blankQuestions, formDefinition, formDraft, newId, type FormDraft, type QuestionType } from '@taipoo/form-core';
+import { blankBlocks, formDefinition, formDraft, newId, type BlockType, type FormDraft } from '@taipoo/form-core';
 import { toast } from 'svelte-sonner';
 import { invalidate } from '$app/navigation';
 import { api } from '$lib/api';
@@ -30,13 +30,13 @@ export class FormEditor {
 	#published = $state<string | null>(null);
 	// Live, and the draft differs from what respondents see: publish to update it.
 	hasChanges = $derived.by(() => this.#published !== null && canonical(this.draft) !== this.#published);
-	// Where a "/" insert line is open, as an index into questions (the one at the end is always there).
+	// Where a "/" insert line is open, as an index into blocks (the one at the end is always there).
 	insertAt = $state<number | null>(null);
 	// A block or option to focus once it renders: set when one is created or moved.
 	focusId = $state<string | null>(null);
 
 	#publishAttempted = $state(false);
-	// Publish problems by path ("questions.2.title" → "Required"). Empty until the first Publish click,
+	// Publish problems by path ("blocks.2.title" → "Required"). Empty until the first Publish click,
 	// then live, so each message clears as you fix it.
 	issues = $derived.by((): Record<string, string> => {
 		if (!this.#publishAttempted) return {};
@@ -62,11 +62,11 @@ export class FormEditor {
 		this.#changed();
 	}
 
-	insert(at: number, type: QuestionType) {
-		const q = blankQuestions[type](newId());
-		ops.insert(this.draft, at, q);
+	insert(at: number, type: BlockType) {
+		const b = blankBlocks[type](newId());
+		ops.insert(this.draft, at, b);
 		this.insertAt = null;
-		this.focusId = q.id;
+		this.focusId = b.id;
 		this.#changed();
 	}
 

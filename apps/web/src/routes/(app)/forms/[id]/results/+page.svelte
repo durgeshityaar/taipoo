@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { formatAnswer, resultColumns, type FormDefinition } from '@taipoo/form-core';
+	import { formatAnswer, questionsById, resultColumns, type FormDefinition } from '@taipoo/form-core';
 	import CalendarIcon from '@lucide/svelte/icons/calendar';
 	import DownloadIcon from '@lucide/svelte/icons/download';
 	import LinkIcon from '@lucide/svelte/icons/link';
@@ -34,16 +34,15 @@
 
 	const live = $derived(form.publishedVersionId !== null);
 	const total = $derived(responses.total);
-	const versions = $derived(new Map(responses.versions.map((v) => [v.id, v.definition as FormDefinition])));
+	const versions = $derived(
+		new Map(responses.versions.map((v) => [v.id, questionsById(v.definition as FormDefinition)]))
+	);
 	// Columns across every version, so answers to since-deleted questions still show (see resultColumns).
 	const columns = $derived(resultColumns(responses.versions.map((v) => v.definition as FormDefinition)));
 
 	// Each answer is read with the question from the version the respondent saw.
 	const answer = (r: Response, questionId: string) =>
-		formatAnswer(
-			versions.get(r.formVersionId)?.questions.find((q) => q.id === questionId),
-			r.answers[questionId]
-		);
+		formatAnswer(versions.get(r.formVersionId)?.get(questionId), r.answers[questionId]);
 	const when = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
 	async function loadMore() {

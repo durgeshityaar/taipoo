@@ -24,7 +24,7 @@ import TextField from './text-field.svelte';
 export type EditorProps<T extends QuestionType> = {
 	editor: FormEditor;
 	question: Extract<Question, { type: T }>;
-	index: number; // position in the form, for looking up editor.issues ("questions.<index>.…")
+	index: number; // position in the form, for looking up editor.issues ("blocks.<index>.…")
 };
 
 // An answer field on the public form. `id` goes on the focusable element (the page focuses the first

@@ -1,12 +1,13 @@
 import { z } from "zod";
-import { publishChecks, question, type PublishIssue, type Question } from "./questions";
+import { block, isQuestion, questionsOf } from "./blocks";
+import { publishChecks, type PublishIssue, type Question } from "./questions";
 
-// What the editor saves: structure only, so empty titles, questions and options are fine.
+// What the editor saves: structure only, so empty titles, questions, options and pages are fine.
 export const formDraft = z
   .object({
     title: z.string().trim().max(200),
     description: z.string().max(2000).optional(),
-    questions: z.array(question).max(200),
+    blocks: z.array(block).max(200),
     settings: z.object({ thankYouMessage: z.string().max(2000).optional() }).default({}),
   })
   .superRefine((form, ctx) => {
@@ -17,9 +18,9 @@ export const formDraft = z
         seen.add(it.id);
       });
     };
-    dupes(form.questions, "question", (i) => ["questions", i, "id"]);
-    form.questions.forEach((q, i) => {
-      if (q.type === "multiple_choice") dupes(q.options, "option", (j) => ["questions", i, "options", j, "id"]);
+    dupes(form.blocks, "block", (i) => ["blocks", i, "id"]);
+    form.blocks.forEach((b, i) => {
+      if (b.type === "multiple_choice") dupes(b.options, "option", (j) => ["blocks", i, "options", j, "id"]);
     });
   });
 
@@ -30,10 +31,16 @@ const publishIssuesFor = (q: Question) => (publishChecks[q.type] as ((q: Questio
 export const formDefinition = formDraft.superRefine((form, ctx) => {
   const issue = (path: PropertyKey[], message: string) => ctx.addIssue({ code: "custom", path, message });
   if (!form.title) issue(["title"], "Add a title");
-  if (form.questions.length === 0) issue(["questions"], "Add at least one question");
-  form.questions.forEach((q, i) => {
-    if (!q.title) issue(["questions", i, "title"], "Required");
-    for (const p of publishIssuesFor(q)) issue(["questions", i, ...p.path], p.message);
+  if (questionsOf(form).length === 0) issue(["blocks"], "Add at least one question");
+  form.blocks.forEach((b, i) => {
+    if (!isQuestion(b)) {
+      // a break at the start, right after another break, or at the end leaves a page with no questions
+      const prev = form.blocks[i - 1];
+      if (!prev || prev.type === "page_break" || i === form.blocks.length - 1) issue(["blocks", i], "This page has no questions");
+      return;
+    }
+    if (!b.title) issue(["blocks", i, "title"], "Required");
+    for (const p of publishIssuesFor(b)) issue(["blocks", i, ...p.path], p.message);
   });
 });
 

@@ -2,7 +2,7 @@ import { formDefinition, type FormDraft } from "@taipoo/form-core";
 import { AppError, notFound, toDetails } from "../../lib/errors";
 import * as data from "./forms.data";
 
-const blankForm: FormDraft = { title: "", questions: [], settings: {} };
+const blankForm: FormDraft = { title: "", blocks: [], settings: {} };
 
 export const createForm = (userId: string, draft: FormDraft = blankForm) => data.insertForm(userId, draft);
 

@@ -20,5 +20,5 @@ export async function signedInClient() {
 
 export const sampleDraft = {
   title: "Feedback",
-  questions: [{ id: "q1", type: "short_text" as const, title: "Your name?", required: true }],
+  blocks: [{ id: "q1", type: "short_text" as const, title: "Your name?", required: true }],
 };

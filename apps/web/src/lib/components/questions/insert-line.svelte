@@ -1,13 +1,13 @@
 <script lang="ts">
-	import type { QuestionType } from '@taipoo/form-core';
+	import type { BlockType } from '@taipoo/form-core';
 	import { Command as CommandPrimitive, computeCommandScore } from 'bits-ui';
 	import * as Command from '$lib/components/ui/command';
 	import * as Popover from '$lib/components/ui/popover';
 	import type { FormEditor } from '$lib/form-editor/form-editor.svelte';
 	import QuestionTypeItems from './question-type-items.svelte';
 
-	// "Type / to insert a question": typing `/` opens the question types, filtered by what follows it;
-	// picking one inserts a blank question of that type at `at`. The hint only shows while the line has the
+	// "Type / to insert a block": typing `/` opens the block types, filtered by what follows it;
+	// picking one inserts a blank block of that type at `at`. The hint only shows while the line has the
 	// cursor; otherwise it shows `idle` (e.g. "Press Enter to start from scratch" on an empty form).
 	let { editor, at, idle = '' }: { editor: FormEditor; at: number; idle?: string } = $props();
 
@@ -18,7 +18,7 @@
 	const filter = (itemValue: string, search: string, keywords?: string[]) =>
 		search.length <= 1 ? 1 : computeCommandScore(itemValue, search.slice(1), keywords);
 
-	function pick(type: QuestionType) {
+	function pick(type: BlockType) {
 		value = '';
 		editor.insert(at, type);
 	}

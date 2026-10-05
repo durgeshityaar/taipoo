@@ -21,9 +21,12 @@ Files starting with a `design:` comment carry our customizations. `shadcn-svelte
 - Auth: `authClient` from `$lib/auth-client`. `(app)` routes are client-rendered (`ssr = false`) behind the session guard in `(app)/+layout.ts`; that guard is UX only — the API's `requireAuth` protects the data.
 - The dev server must run on port 5173 (`strictPort`): the API trusts only `WEB_URL=http://localhost:5173` as an auth origin.
 
-## Question types
+## Blocks
 
-A type lives in two registries, each with an "Adding a type" comment: `packages/form-core/src/schema/questions/index.ts` (schema, blank, publish rules, answer validator) and `src/lib/components/questions/index.ts` (its editor block). TypeScript fails until both have it.
+A form is a list of blocks: questions and layout blocks (page breaks, …), unioned in `packages/form-core/src/schema/blocks/index.ts`.
+
+- Question type: two registries, each with an "Adding a type" comment: `packages/form-core/src/schema/questions/index.ts` (schema, blank, publish rules, answer validator) and `src/lib/components/questions/index.ts` (its editor block). TypeScript fails until both have it.
+- Layout block: `blocks/index.ts` has the "Adding a layout block" steps (schema, blank, editor block, the "Layout blocks" group in `question-type-items.svelte`, `form-view.svelte`). Answers, results and publish rules read questions through `questionsOf` / `pagesOf`, so layout blocks never reach them.
 
 ## State
 
