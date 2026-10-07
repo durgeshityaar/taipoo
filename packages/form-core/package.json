@@ -2,6 +2,10 @@
   "name": "@taipoo/form-core",
   "type": "module",
   "private": true,
+  "scripts": {
+    "test": "bun test",
+    "check": "tsc --noEmit"
+  },
   "exports": {
     ".": "./src/index.ts"
   },

@@ -1,7 +1,7 @@
 COMPOSE := docker compose -f apps/api/docker-compose.yml
 API := cd apps/api && bun run
 
-.PHONY: help install up down reset logs psql dev-api dev-web test db-generate db-migrate db-studio
+.PHONY: help install up down reset logs psql dev-api dev-web test check db-generate db-migrate db-studio
 
 help: ## list commands
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -34,7 +34,13 @@ dev-web: ## run the SvelteKit dev server
 
 test: up ## run all tests (API tests use the separate taipoo_test database)
 	cd packages/form-core && bun test
+	cd apps/web && bun run test
 	$(API) test
+
+check: ## type-check every package
+	cd packages/form-core && bun run check
+	$(API) check
+	cd apps/web && bun run check
 
 db-generate: ## create a migration from schema changes (make db-generate name=add_forms)
 	$(API) db:generate $(if $(name),--name $(name))
