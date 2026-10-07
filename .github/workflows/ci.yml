@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+      - run: bun install --frozen-lockfile
+
+      # env.ts refuses to start without these; tests override DATABASE_URL with .env.test
+      - name: Create API env
+        run: |
+          cp apps/api/.env.example apps/api/.env
+          sed -i "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$(openssl rand -base64 32)|" apps/api/.env
+
+      - run: make check
+      - run: make test # starts Postgres through docker compose
